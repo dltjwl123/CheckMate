@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Button from "./button";
 
@@ -21,7 +23,9 @@ function Navbar() {
             >
               문제
             </Link>
-            <Button>로그인</Button>
+            <Link href={"login"}>
+              <Button>로그인</Button>
+            </Link>
           </div>
 
           {/* Mobile */}
