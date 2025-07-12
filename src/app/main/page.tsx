@@ -8,7 +8,8 @@ import Table, {
   TableHeader,
   TableRow,
 } from "@/components/table";
-import Badge from "@/components/badge";
+import Badge from "@/components/ui/badge";
+import Footer from "@/components/footer";
 // Sample data for recent problems
 
 const recentProblems = [
@@ -248,27 +249,7 @@ function Main() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-gray-600 mb-4 md:mb-0">
-              저작권 항목
-            </div>
-            <div className="flex items-center space-x-6">
-              <p className="text-gray-600 hover:text-gray-900 text-sm">
-                이용약관
-              </p>
-              <p className="text-gray-600 hover:text-gray-900 text-sm">
-                개인정보처리방침
-              </p>
-              <p className="text-gray-600 hover:text-gray-900 text-sm">
-                GitHub
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -4,9 +4,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
 import { ArrowLeft, Check, Upload } from "lucide-react";
-import Card, { CardContent, CardHeader, CardTitle } from "@/components/card";
-import Badge from "@/components/badge";
-import Button from "@/components/button";
+import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Badge from "@/components/ui/badge";
+import Button from "@/components/ui/button";
 
 const problemsData = [
   {
