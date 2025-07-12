@@ -55,7 +55,7 @@ function Signup() {
   });
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false);
-  const [isSigningUp, SetIssigningUp] = useState<boolean>(false);
+  const [isSigningUp, SetIsSigningUp] = useState<boolean>(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -100,7 +100,7 @@ function Signup() {
           throw new Error("인증코드가 올바르지 않습니다");
         }
       }, 2000);
-    } catch (error) {
+    } catch {
       setErrors((prev) => ({
         ...prev,
         verificationCode: "인증코드가 올바르지 않습니다",
@@ -133,7 +133,7 @@ function Signup() {
         setIsCodeSent(true);
         setShowVerificationInput(true);
       }, 1000);
-    } catch (error) {
+    } catch {
       setErrors((prev) => ({
         ...prev,
         general: "인증코드 발송에 실패했습니다",
@@ -205,6 +205,21 @@ function Signup() {
 
     if (!validateForm()) {
       return;
+    }
+
+    SetIsSigningUp(true);
+
+    try {
+      setTimeout(() => {
+        router.push("/login");
+      })
+    } catch {
+      setErrors((prev) => ({
+        ...prev,
+        general: "회원가입에 실패했습니다. 다시 시도해주세요."
+      }));
+    } finally {
+      SetIsSigningUp(false);
     }
   };
 
