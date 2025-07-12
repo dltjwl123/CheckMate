@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Upload } from "lucide-react";
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
+import Image from "next/image";
 
 const problemsData = [
   {
@@ -90,7 +91,7 @@ function Problem() {
       reader.onload = (event) => {
         setSolutionImage(event.target?.result as string);
         setIsUploading(false);
-      }
+      };
       reader.readAsDataURL(file);
     }, 1000);
   };
@@ -143,7 +144,9 @@ function Problem() {
                       <Badge varient="outline">미완료</Badge>
                     )}
                   </div>
-                  <CardTitle className="text-2xl font-bold text-gray-900 text-left mt-5">{problem.title}</CardTitle>
+                  <CardTitle className="text-2xl font-bold text-gray-900 text-left mt-5">
+                    {problem.title}
+                  </CardTitle>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {problem.tags.map((tag) => (
@@ -160,8 +163,8 @@ function Problem() {
                   문제 이미지
                 </div>
                 <div className="flex justify-center p-4">
-                  <img
-                    src={problem.imageUrl || "dummyPlaceholder.svg"}
+                  <Image
+                    src={problem.imageUrl || "/dummyPlaceholder.svg"}
                     alt={`${problem.title} 문제 이미지`}
                     width={800}
                     height={600}
@@ -172,72 +175,84 @@ function Problem() {
             </CardContent>
           </Card>
 
-					{/* Upload */}
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-xl">내 풀이</CardTitle>
-						</CardHeader>
-						<CardContent>
-							{solutionImage ? (
-								// Uploaded Image
-								<div className="space-y-6">
-									<div className="bg-white rounded-md overflow-hidden border border-gray-200">
-										<div className="text-center text-sm text-gray-500 py-2 bg-gray-50 brder-b border-gray-200">
-											업로드된 풀이
-										</div>
-										<div className="flex justify-center p-4">
-											<img src={solutionImage || "dummyPlaceholder.svg"} alt="업로드 이미지" width={600} height={400} className="max-w-full h-auto rounded"/>
-										</div>
-									</div>
+          {/* Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">내 풀이</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {solutionImage ? (
+                // Uploaded Image
+                <div className="space-y-6">
+                  <div className="bg-white rounded-md overflow-hidden border border-gray-200">
+                    <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 brder-b border-gray-200">
+                      업로드된 풀이
+                    </div>
+                    <div className="flex justify-center p-4">
+                      <Image
+                        src={solutionImage || "dummyPlaceholder.svg"}
+                        alt="업로드 이미지"
+                        width={600}
+                        height={400}
+                        className="max-w-full h-auto rounded"
+                      />
+                    </div>
+                  </div>
 
-									<div className="flex gap-4">
-										<Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={() => setSolutionImage(null)}>
-											<Upload className="h-4 w-4" />
-											다시 업로드
-										</Button>
-										<Button className="flex items-center gap-2" onClick={handleSubmit}>
-											<Check className="h-4 w-4" />
-											제출하기
-										</Button>
-									</div>
-								</div>
-							) : (
-								// No Image
-								<div className="space-y-6">
-									<div className="border-2 border-dashed border-gray-300 rounded-md p-12 text-center">
-										<div className="flex flex-col items-center">
-											<Upload className="h-12 w-12 text-gray-400 mb-4" />
-											<p className="text-lg font-medium text-gray-900 mb-1">
-												풀이 이미지 업로드
-											</p>
-											<label htmlFor="file-upload"
-											className="cursor-pointer">
-												<Button disabled={isUploading}>
-													{isUploading ? "업로드 중..." : "이미지 선택"}
-												</Button>
-												<input
-													id="file-upload"
-													name="fiule-uplaod"
-													type="file"
-													accept="image/*"
-													className="sr-only"
-													onChange={handleImageUpload}
-													disabled={isUploading}
-												/>
-											</label>
-										</div>
-									</div>
-									<Button className="w-full" disabled={true}>
-										<Check className="h-4 w-4 mr-2"/>
-										제출하기
-									</Button>
-									<p className="text-sm text-center text-gray-500">
-										풀이를 업로드한후 제출할 수 있습니다.
-									</p>
-								</div>
-							)}
-						</CardContent>
-					</Card>
+                  <div className="flex gap-4">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 bg-transparent"
+                      onClick={() => setSolutionImage(null)}
+                    >
+                      <Upload className="h-4 w-4" />
+                      다시 업로드
+                    </Button>
+                    <Button
+                      className="flex items-center gap-2"
+                      onClick={handleSubmit}
+                    >
+                      <Check className="h-4 w-4" />
+                      제출하기
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                // No Image
+                <div className="space-y-6">
+                  <div className="border-2 border-dashed border-gray-300 rounded-md p-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-lg font-medium text-gray-900 mb-1">
+                        풀이 이미지 업로드
+                      </p>
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        <Button disabled={isUploading}>
+                          {isUploading ? "업로드 중..." : "이미지 선택"}
+                        </Button>
+                        <input
+                          id="file-upload"
+                          name="fiule-uplaod"
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={handleImageUpload}
+                          disabled={isUploading}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <Button className="w-full" disabled={true}>
+                    <Check className="h-4 w-4 mr-2" />
+                    제출하기
+                  </Button>
+                  <p className="text-sm text-center text-gray-500">
+                    풀이를 업로드한후 제출할 수 있습니다.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
