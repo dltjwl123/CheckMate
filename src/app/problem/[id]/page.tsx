@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
@@ -76,8 +76,24 @@ function Problem() {
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  // WIP
-  const handleImageUpload = () => {};
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setIsUploading(true);
+
+    setTimeout(() => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSolutionImage(event.target?.result as string);
+        setIsUploading(false);
+      }
+      reader.readAsDataURL(file);
+    }, 1000);
+  };
 
   const handleSubmit = () => {
     alert("풀이 제출이 완료되었습니다.");
