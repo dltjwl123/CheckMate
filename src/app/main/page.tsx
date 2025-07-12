@@ -8,7 +8,7 @@ import Table, {
   TableHeader,
   TableRow,
 } from "@/components/table";
-import Badge from "@/components/badge";
+import Badge from "@/components/ui/badge";
 import Footer from "@/components/footer";
 // Sample data for recent problems
 
