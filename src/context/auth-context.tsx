@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
   const router = useRouter();
 
-  const login = useCallback((email: string, nickname: string) => {
+  const login = useCallback((_email: string, _nickname: string) => {
     setUser(dummyUser);
     setIsLoggedIn(true);
   }, []);
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    async (_currentPassword: string, _newPassword: string): Promise<boolean> => {
       return new Promise((resolve) => {
         setTimeout(() => {
           alert("비밀번호가 변경되었습니다.");
