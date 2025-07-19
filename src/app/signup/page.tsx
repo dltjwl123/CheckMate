@@ -57,7 +57,7 @@ function Signup() {
   });
   const [showTermsModal, setShowTermsModal] = useState<boolean>(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false);
-  const [isSigningUp, SetIsSigningUp] = useState<boolean>(false);
+  const [isSigningUp, setIsSigningUp] = useState<boolean>(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -209,11 +209,11 @@ function Signup() {
       return;
     }
 
-    SetIsSigningUp(true);
+    setIsSigningUp(true);
 
     try {
       setTimeout(() => {
-        login("dummy@example.com", "청운종");
+        login("apiRin@example.com", "청운종");
         router.push("/login");
       });
     } catch {
@@ -222,7 +222,7 @@ function Signup() {
         general: "회원가입에 실패했습니다. 다시 시도해주세요.",
       }));
     } finally {
-      SetIsSigningUp(false);
+      setIsSigningUp(false);
     }
   };
 
