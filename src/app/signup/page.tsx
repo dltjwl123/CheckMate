@@ -10,6 +10,7 @@ import Modal from "@/components/ui/modal";
 import TermsContent from "@/components/terms";
 import PrivacyContent from "@/components/privacy";
 import Footer from "@/components/footer";
+import { useAuth } from "@/context/auth-context";
 
 interface FormData {
   email: string;
@@ -32,6 +33,7 @@ interface FormErrors {
 
 function Signup() {
   const router = useRouter();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -211,12 +213,13 @@ function Signup() {
 
     try {
       setTimeout(() => {
+        login("dummy@example.com", "청운종");
         router.push("/login");
-      })
+      });
     } catch {
       setErrors((prev) => ({
         ...prev,
-        general: "회원가입에 실패했습니다. 다시 시도해주세요."
+        general: "회원가입에 실패했습니다. 다시 시도해주세요.",
       }));
     } finally {
       SetIsSigningUp(false);
