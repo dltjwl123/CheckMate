@@ -32,8 +32,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dummyUser: User = {
     email: "test@example.com",
-    nickname: "Test User",
-    profileImage: "https://example.com/profile.jpg",
+    nickname: "청운종",
+    profileImage: "/placeholder.svg?height=40&width=40",
   };
   const [user, setUser] = useState<User | null>(dummyUser);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);

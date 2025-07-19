@@ -7,9 +7,11 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useAuth } from "@/context/auth-context";
 
 export default function Login() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -21,6 +23,7 @@ export default function Login() {
 
     // WIP : login api
     setTimeout(() => {
+      login("apiRin@naver.com", "청운종");
       alert("로그인 성공!");
       setIsLoading(false);
       router.push("/");
