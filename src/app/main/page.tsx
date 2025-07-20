@@ -198,7 +198,7 @@ function Main() {
                   <TableRow
                     key={problem.id}
                     className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => router.push(`/problem/${problem.id}`)}
+                    onClick={() => router.push(`/problems/${problem.id}`)}
                   >
                     <TableCell className="font-medium">
                       {problem.year}

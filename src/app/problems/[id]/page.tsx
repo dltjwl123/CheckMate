@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
-import { ArrowLeft, Check, Plus, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, Upload } from "lucide-react";
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
@@ -122,13 +122,20 @@ function Problem() {
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
-          <div className="mb-3 text-left">
+          <div className="mb-6 flex justify-between items-center">
             <Link
               href="/"
               className="inline-flex items-center text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               문제 목록으로 돌아가기
+            </Link>
+            <Link
+              href={`/problems/${problemId}/solutions`}
+              className="inline-flex items-center text-blue-600 hover:text-blue-700"
+            >
+              <ArrowRight className="h-4 w-4 ml-2" />
+              제출된 풀이 보러 가기
             </Link>
           </div>
 
