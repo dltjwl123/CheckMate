@@ -19,7 +19,7 @@ const problemsData = [
     tags: ["미적분학", "극한"],
     difficulty: "고급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImage: "/placeholder.svg?height=400&width=600",
+    solutionImages: ["/placeholder.svg?height=400&width=600"],
   },
   {
     id: 2,
@@ -30,7 +30,7 @@ const problemsData = [
     tags: ["확률", "통계"],
     difficulty: "중급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImage: null,
+    solutionImages: null,
   },
   {
     id: 3,
@@ -41,7 +41,7 @@ const problemsData = [
     tags: ["기하학", "공간도형"],
     difficulty: "고급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImage: "/placeholder.svg?height=400&width=600",
+    solutionImages: ["/placeholder.svg?height=400&width=600"],
   },
   {
     id: 4,
@@ -52,7 +52,7 @@ const problemsData = [
     tags: ["함수", "그래프"],
     difficulty: "중급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImage: null,
+    solutionImages: null,
   },
   {
     id: 5,
@@ -63,7 +63,7 @@ const problemsData = [
     tags: ["삼각함수", "방정식"],
     difficulty: "중급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImage: "/placeholder.svg?height=400&width=600",
+    solutionImages: ["/placeholder.svg?height=400&width=600"],
   },
 ];
 
@@ -72,28 +72,44 @@ function Problem() {
   const problemId = Number.parseInt(id as string);
   const problem =
     problemsData.find((p) => p.id === problemId) || problemsData[0];
-  const [solutionImage, setSolutionImage] = useState<string | null>(
-    problem.solutionImage
+  const [solutionImages, setSolutionImages] = useState<string[]>(
+    problem.solutionImages ?? []
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = e.target.files;
 
-    if (!file) {
+    if (!files || files.length === 0) {
       return;
     }
 
     setIsUploading(true);
 
-    setTimeout(() => {
+    const newImages: string[] = [];
+    let filesProcessed = 0;
+    const wasEmptyBeforeUpload = solutionImages.length === 0;
+
+    Array.from(files).forEach((file) => {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setSolutionImage(event.target?.result as string);
-        setIsUploading(false);
+      reader.onloadend = (event) => {
+        newImages.push(event.target?.result as string);
+        filesProcessed++;
+
+        if (filesProcessed === files.length) {
+          setSolutionImages((prev) => [...prev, ...newImages]);
+          setActiveImageIndex(solutionImages.length + newImages.length - 1);
+          e.target.value = "";
+          setIsUploading(false);
+
+          if (wasEmptyBeforeUpload) {
+            alert("풀이 이미지가 업로드되었습니다.");
+          }
+        }
       };
       reader.readAsDataURL(file);
-    }, 1000);
+    });
   };
 
   const handleSubmit = () => {
@@ -181,16 +197,45 @@ function Problem() {
               <CardTitle className="text-xl">내 풀이</CardTitle>
             </CardHeader>
             <CardContent>
-              {solutionImage ? (
+              {solutionImages ? (
                 // Uploaded Image
                 <div className="space-y-6">
+                  {/* preview */}
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    {solutionImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className={`relative w-20 h-20 border rounded-md overflow-hidden cursor-pointer ${
+                          activeImageIndex === index
+                            ? "border-blue-500 ring-2 ring-blue-500"
+                            : "border-gray-200"
+                        }`}
+                        onClick={() => setActiveImageIndex(index)}
+                      >
+                        <Image
+                          src={image || "/placeholder.svg"}
+                          alt={`풀이 이미지 ${index + 1}`}
+                          layout="fill"
+                          objectFit="cover"
+                          className="rounded-md"
+                        />
+                        <span
+                          className="absolute bottom-0 right-0 bg-black bg-opacity-50
+                          text-white text-xs px-1 rounded-tl-md"
+                        >
+                          {index + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="bg-white rounded-md overflow-hidden border border-gray-200">
                     <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 brder-b border-gray-200">
                       업로드된 풀이
                     </div>
                     <div className="flex justify-center p-4">
                       <Image
-                        src={solutionImage || "dummyPlaceholder.svg"}
+                        src={solutionImages || "dummyPlaceholder.svg"}
                         alt="업로드 이미지"
                         width={600}
                         height={400}
@@ -203,7 +248,7 @@ function Problem() {
                     <Button
                       variant="outline"
                       className="flex items-center gap-2 bg-transparent"
-                      onClick={() => setSolutionImage(null)}
+                      onClick={() => setSolutionImages(null)}
                     >
                       <Upload className="h-4 w-4" />
                       다시 업로드
