@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
-import { ArrowLeft, Check, Upload } from "lucide-react";
+import { ArrowLeft, Check, Plus, Upload } from "lucide-react";
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
@@ -76,7 +76,7 @@ function Problem() {
     problem.solutionImages ?? []
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -229,13 +229,19 @@ function Problem() {
                     ))}
                   </div>
 
+                  {/* solution details */}
                   <div className="bg-white rounded-md overflow-hidden border border-gray-200">
                     <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 brder-b border-gray-200">
-                      업로드된 풀이
+                      업로드된 풀이 (페이지 {activeImageIndex + 1} /{" "}
+                      {solutionImages.length})
                     </div>
                     <div className="flex justify-center p-4">
                       <Image
-                        src={solutionImages || "dummyPlaceholder.svg"}
+                        src={
+                          activeImageIndex
+                            ? solutionImages[activeImageIndex]
+                            : "dummyPlaceholder.svg"
+                        }
                         alt="업로드 이미지"
                         width={600}
                         height={400}
@@ -244,18 +250,60 @@ function Problem() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 bg-transparent"
-                      onClick={() => setSolutionImages(null)}
-                    >
-                      <Upload className="h-4 w-4" />
-                      다시 업로드
-                    </Button>
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-4">
+                      <label
+                        htmlFor="re-upload-file"
+                        className="cursor-pointer"
+                      >
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                          onClick={() => setSolutionImages([])}
+                        >
+                          <Upload className="h-4 w-4" />
+                          다시 업로드
+                        </Button>
+                        <input
+                          id="re-upload-file"
+                          name="re-upload-file"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="sr-only"
+                          onChange={handleImageUpload}
+                          disabled={isUploading}
+                        />
+                      </label>
+
+                      <label
+                        htmlFor="add-upload-file"
+                        className="cursor-pointer"
+                      >
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                          disabled={isUploading}
+                        >
+                          <Plus className="h-4 w-4" />
+                          추가 업로드
+                        </Button>
+                        <input
+                          id="add-upload-file"
+                          name="add-upload-file"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="sr-only"
+                          onChange={handleImageUpload}
+                          disabled={isUploading}
+                        />
+                      </label>
+                    </div>
                     <Button
                       className="flex items-center gap-2"
                       onClick={handleSubmit}
+                      disabled={solutionImages.length === 0 || isUploading}
                     >
                       <Check className="h-4 w-4" />
                       제출하기
