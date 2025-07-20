@@ -164,7 +164,7 @@ function Problem() {
                         풀이 완료
                       </Badge>
                     ) : (
-                      <Badge varient="outline">미완료</Badge>
+                      <Badge variant="outline">미완료</Badge>
                     )}
                   </div>
                   <CardTitle className="text-2xl font-bold text-gray-900 text-left mt-5">
@@ -173,7 +173,7 @@ function Problem() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {problem.tags.map((tag) => (
-                    <Badge key={tag} varient="secondary">
+                    <Badge key={tag} variant="secondary">
                       {tag}
                     </Badge>
                   ))}

@@ -2,7 +2,7 @@
 
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import {
+import Table, {
   TableBody,
   TableCell,
   TableHead,
@@ -11,9 +11,10 @@ import {
 } from "@/components/table";
 import Badge from "@/components/ui/badge";
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Check, Table, X } from "lucide-react";
+import { getRelativeTime } from "@/utils/time";
+import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 //sample problem data
 const problemsData = [
@@ -113,31 +114,9 @@ const solutionsData = [
   },
 ];
 
-const getRelativeTime = (date: Date): string => {
-  const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-  const diffInMonths = Math.floor(diffInDays / 30);
-  const diffInYears = Math.floor(diffInMonths / 12);
-
-  if (diffInMinutes < 1) {
-    return "최근";
-  } else if (diffInMinutes < 60) {
-    return `${diffInMinutes}분 전`;
-  } else if (diffInHours < 24) {
-    return `${diffInHours}시간 전`;
-  } else if (diffInDays < 30) {
-    return `${diffInDays}일 전`;
-  } else if (diffInMonths < 12) {
-    return `${diffInMonths}개월 전`;
-  }
-  return `${diffInYears}년 전`;
-};
-
 export default function SolutionPage() {
   const { id } = useParams();
+  const router = useRouter();
   const problemId = Number.parseInt(id as string);
 
   const problem =
@@ -190,7 +169,7 @@ export default function SolutionPage() {
                   </CardTitle>
                   <div className="flex flex-wrap gap-1">
                     {problem.tags.map((tag) => (
-                      <Badge key={tag} varient="secondary">
+                      <Badge key={tag} variant="secondary">
                         {tag}
                       </Badge>
                     ))}
@@ -251,7 +230,7 @@ export default function SolutionPage() {
                       key={solution.id}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() => {
-                        window.location.href = `/problems/${problemId}/solutions/${solution.submissionNumber}`;
+                        router.push(`/problems/${problemId}/solutions/${solution.submissionNumber}`);
                       }}
                     >
                       <TableCell className="font-mono text-sm">
