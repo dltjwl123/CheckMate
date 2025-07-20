@@ -30,7 +30,7 @@ const problemsData = [
     tags: ["확률", "통계"],
     difficulty: "중급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: null,
+    solutionImages: ["/placeholder.svg?height=400&width=600"],
   },
   {
     id: 3,
@@ -52,7 +52,7 @@ const problemsData = [
     tags: ["함수", "그래프"],
     difficulty: "중급",
     imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: null,
+    solutionImages: ["/placeholder.svg?height=400&width=600"],
   },
   {
     id: 5,
@@ -73,7 +73,7 @@ function Problem() {
   const problem =
     problemsData.find((p) => p.id === problemId) || problemsData[0];
   const [solutionImages, setSolutionImages] = useState<string[]>(
-    problem.solutionImages ?? []
+    problem.solutionImages
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
@@ -198,7 +198,6 @@ function Problem() {
             </CardHeader>
             <CardContent>
               {solutionImages ? (
-                // Uploaded Image
                 <div className="space-y-6">
                   {/* preview */}
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
@@ -232,8 +231,10 @@ function Problem() {
                   {/* solution details */}
                   <div className="bg-white rounded-md overflow-hidden border border-gray-200">
                     <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 brder-b border-gray-200">
-                      업로드된 풀이 (페이지 {activeImageIndex + 1} /{" "}
-                      {solutionImages.length})
+                      업로드된 풀이{" "}
+                      {solutionImages.length > 0 &&
+                        `페이지 ${activeImageIndex + 1} /
+                      ${solutionImages.length}`}
                     </div>
                     <div className="flex justify-center p-4">
                       <Image
