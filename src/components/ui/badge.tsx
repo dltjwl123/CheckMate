@@ -1,10 +1,10 @@
 interface BadgeProps {
-  varient?: "default" | "secondary" | "outline";
+  variant?: "default" | "secondary" | "outline";
   className?: string;
   children: React.ReactNode;
 }
 
-function Badge({ varient = "default", className = "", children }: BadgeProps) {
+function Badge({ variant = "default", className = "", children }: BadgeProps) {
   const baseClasses =
     "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
   const variantclasses = {
@@ -14,7 +14,7 @@ function Badge({ varient = "default", className = "", children }: BadgeProps) {
   };
 
   return (
-    <span className={`${baseClasses} ${variantclasses[varient]} ${className}`}>
+    <span className={`${baseClasses} ${variantclasses[variant]} ${className}`}>
       {children}
     </span>
   );

@@ -198,7 +198,7 @@ function Main() {
                   <TableRow
                     key={problem.id}
                     className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => router.push(`/problem/${problem.id}`)}
+                    onClick={() => router.push(`/problems/${problem.id}`)}
                   >
                     <TableCell className="font-medium">
                       {problem.year}
@@ -229,13 +229,13 @@ function Main() {
                           완료
                         </Badge>
                       ) : (
-                        <Badge varient="outline">미완료</Badge>
+                        <Badge variant="outline">미완료</Badge>
                       )}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {problem.tags.map((tag) => (
-                          <Badge key={tag} varient="secondary" className="text-xs">
+                          <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}
                           </Badge>
                         ))}
