@@ -231,6 +231,11 @@ export default function MyReviewPage() {
                           <TableCell className="font-medium text-gray-900">
                             {review.solutionSubmitter} 님의 풀이
                           </TableCell>
+                          <TableCell>
+                            <div className="font-medium text-gray-900">
+                              {problem!.title}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right text-sm text-gray-500">
                             {getRelativeTime(review.submittedAt)}
                           </TableCell>
