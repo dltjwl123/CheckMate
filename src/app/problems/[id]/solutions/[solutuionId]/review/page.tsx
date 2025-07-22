@@ -2,7 +2,7 @@
 
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import ReviewEditor from "@/components/review-editor";
+import ReviewEditor, { ReviewPageData } from "@/components/review-editor";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -44,7 +44,7 @@ export default function ReviewCreatePage() {
   const solution =
     solutionsData.find((s) => s.id === solutionIdStr) || solutionsData[0];
 
-  const handleSubmitReview = (reviewPagesData: any[]) => {
+  const handleSubmitReview = (reviewPagesData: ReviewPageData[]) => {
     console.log("리뷰 제출:", reviewPagesData);
     alert("리뷰가 제출되었습니다.");
     router.push(`/problems/${problemId}/solutions/${solutionId}`);

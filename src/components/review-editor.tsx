@@ -8,6 +8,7 @@ import {
   ImageIcon,
   Pencil,
   Plus,
+  Save,
   TextCursorInput,
   Trash2,
   XCircle,
@@ -24,7 +25,7 @@ interface ReviewTextBox {
   content: string;
 }
 
-interface ReviewPageData {
+export interface ReviewPageData {
   id: string;
   backgroundImageUrl: string;
   drawingData: string; // Base64 string of the transparent drawing layer
@@ -72,7 +73,7 @@ export default function ReviewEditor({
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
-  const [resizeOffset, setResizeOffset] = useState<Point>({ x: 0, y: 0 });
+  // const [resizeOffset, setResizeOffset] = useState<Point>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
 
   const handleMouseDown = (
@@ -99,10 +100,10 @@ export default function ReviewEditor({
     } else if (type === "resize" && handle) {
       setIsResizing(true);
       setResizeHandle(handle);
-      setResizeOffset({
-        x: e.clientX - (textBox.x + textBox.width),
-        y: e.clientY - (textBox.y + textBox.height),
-      });
+      // setResizeOffset({
+      //   x: e.clientX - (textBox.x + textBox.width),
+      //   y: e.clientY - (textBox.y + textBox.height),
+      // });
     }
   };
 
@@ -659,6 +660,17 @@ export default function ReviewEditor({
           </div>
         </CardContent>
       </Card>
+
+      {/* Review Submit Button */}
+      <div className="flex justify-end">
+        <Button
+          className="flext items-center gap-2"
+          onClick={() => onSubmitReview(reviewPages)}
+        >
+          <Save className="h-4 w-4" />
+          리뷰 제출
+        </Button>
+      </div>
     </div>
   );
 }
