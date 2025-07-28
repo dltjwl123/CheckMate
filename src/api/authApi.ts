@@ -21,6 +21,10 @@ export const verifyRegistrationCodeAPI = async (
   code: string
 ) => {
   try {
+    await axiosInstance.post("auth/verify-code", {
+      email,
+      code,
+    });
   } catch (error) {
     apiErrorHandler(error);
   }

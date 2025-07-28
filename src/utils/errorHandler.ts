@@ -1,5 +1,4 @@
 
-
-export const apiErrorHandler = (error: any) => {
+export const apiErrorHandler = (error: unknown) => {
   console.error(error);
 };

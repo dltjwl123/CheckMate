@@ -172,7 +172,7 @@ export default function ReviewEditor({
     },
     [
       activePageIndex,
-      setSelectedTextBoxId,
+      selectedTextBoxId,
       isDragging,
       isResizing,
       dragOffset,
