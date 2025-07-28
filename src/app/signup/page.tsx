@@ -11,6 +11,11 @@ import TermsContent from "@/components/terms";
 import PrivacyContent from "@/components/privacy";
 import Footer from "@/components/footer";
 import { useAuth } from "@/context/auth-context";
+import {
+  sendRegistrationCodeAPI,
+  signUpAPI,
+  verifyRegistrationCodeAPI,
+} from "@/api/authApi";
 
 interface FormData {
   email: string;
@@ -94,14 +99,7 @@ function Signup() {
     setErrors((prev) => ({ ...prev, verificationCode: "" }));
 
     try {
-      // backend API
-      setTimeout(() => {
-        if (verificationCode === "123456") {
-          setIsEmailVerified(true);
-        } else {
-          throw new Error("인증코드가 올바르지 않습니다");
-        }
-      }, 2000);
+      verifyRegistrationCodeAPI(formData.email, verificationCode);
     } catch {
       setErrors((prev) => ({
         ...prev,
@@ -130,11 +128,10 @@ function Signup() {
     setErrors((prev) => ({ ...prev, email: "", general: "" }));
 
     try {
-      // backend API
-      setTimeout(() => {
-        setIsCodeSent(true);
-        setShowVerificationInput(true);
-      }, 1000);
+      await sendRegistrationCodeAPI(formData.email);
+      console.log("qwer");
+      setIsCodeSent(true);
+      setShowVerificationInput(true);
     } catch {
       setErrors((prev) => ({
         ...prev,
@@ -212,6 +209,7 @@ function Signup() {
     setIsSigningUp(true);
 
     try {
+      signUpAPI(formData.email, formData.password, "청운종");
       setTimeout(() => {
         login("apiRin@example.com", "청운종");
         router.push("/login");

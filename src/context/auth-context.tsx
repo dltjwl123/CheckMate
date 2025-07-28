@@ -6,6 +6,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useMemo,
 } from "react";
 
 interface User {
@@ -30,20 +31,26 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const dummyUser: User = {
-    email: "test@example.com",
-    nickname: "청운종",
-    profileImage: "/placeholder.svg?height=40&width=40",
-  };
+  const dummyUser: User = useMemo(
+    () => ({
+      email: "test@example.com",
+      nickname: "청운종",
+      profileImage: "/placeholder.svg?height=40&width=40",
+    }),
+    []
+  );
   const [user, setUser] = useState<User | null>(dummyUser);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
   const router = useRouter();
 
-  const login = useCallback((email: string, nickname: string) => {
-    console.log("Logging in with:", email, nickname);
-    setUser(dummyUser);
-    setIsLoggedIn(true);
-  }, []);
+  const login = useCallback(
+    (email: string, nickname: string) => {
+      console.log("Logging in with:", email, nickname);
+      setUser(dummyUser);
+      setIsLoggedIn(true);
+    },
+    [dummyUser]
+  );
 
   const logout = useCallback(() => {
     setUser(null);
@@ -77,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }, 1000);
       });
     },
-    [user?.email]
+    []
   );
 
   const deleteAccount = useCallback(async (): Promise<boolean> => {
