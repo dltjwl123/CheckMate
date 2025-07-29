@@ -33,13 +33,13 @@ export const verifyRegistrationCodeAPI = async (
 export const signUpAPI = async (
   email: string,
   password: string,
-  usernmae: string
+  username: string
 ) => {
   try {
     await axiosInstance.post("auth/signup", {
       email,
       password,
-      usernmae,
+      username,
     });
   } catch (error) {
     apiErrorHandler(error);
