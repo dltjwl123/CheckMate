@@ -39,8 +39,16 @@ export function TableHead({ className = "", children }: TableProps) {
   );
 }
 
-export function TableCell({ className = "", children }: TableProps) {
-  return <td className={`p-4 align-middle ${className}`}>{children}</td>;
+export function TableCell({
+  className = "",
+  children,
+  ...props
+}: TableProps & React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return (
+    <td className={`p-4 align-middle ${className}`} {...props}>
+      {children}
+    </td>
+  );
 }
 
 function Table({ className = "", children }: TableProps) {
