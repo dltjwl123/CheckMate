@@ -1,5 +1,6 @@
 "use client";
 
+import { logoutAPI } from "@/api/authApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Button from "@/components/ui/button";
@@ -84,6 +85,11 @@ export default function MyPage() {
     }
 
     setIsChangingPassword(true);
+    try {
+      
+    } catch {
+      alert("비밀번호 변경에 실패하였습니다.");
+    }
     const success = await changePassword(currentPassword, newPassword);
     if (success) {
       alert("비밀번호가 변경되었습니다.");
@@ -111,6 +117,11 @@ export default function MyPage() {
   if (!user) {
     return null;
   }
+
+  const handleLogout = async () => {
+    await logoutAPI();
+    logout();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -315,7 +326,7 @@ export default function MyPage() {
             <CardContent className="space-y-4">
               <Button
                 variant="outline"
-                onClick={logout}
+                onClick={handleLogout}
                 className="w-full bg-transparent"
               >
                 로그아웃

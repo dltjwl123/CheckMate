@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useAuth } from "@/context/auth-context";
+import { loginAPI } from "@/api/authApi";
 
 export default function Login() {
   const router = useRouter();
@@ -21,13 +22,14 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
 
-    // WIP : login api
-    setTimeout(() => {
-      login("apiRin@naver.com", "청운종");
-      alert("로그인 성공!");
+    try {
+      await loginAPI(email, password);
+      login(email, "청운종");
       setIsLoading(false);
       router.push("/");
-    }, 1000);
+    } catch {
+      alert("로그인에 실패하였습니다.");
+    }
   };
 
   const handleSignup = () => {

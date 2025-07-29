@@ -1,5 +1,11 @@
 "use client";
 
+import { loginAPI, logoutAPI } from "@/api/authApi";
+import {
+  getUserDataAPI,
+  updateUserProfileAPI,
+  UpdateUserProfileRequest,
+} from "@/api/userApi";
 import { useRouter } from "next/navigation";
 import React, {
   useState,
@@ -10,6 +16,7 @@ import React, {
 } from "react";
 
 interface User {
+  id: number;
   email: string;
   nickname: string;
   profileImage?: string;
@@ -33,6 +40,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dummyUser: User = useMemo(
     () => ({
+      id: 0,
       email: "test@example.com",
       nickname: "청운종",
       profileImage: "/placeholder.svg?height=40&width=40",
@@ -44,39 +52,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const login = useCallback(
-    (email: string, nickname: string) => {
-      console.log("Logging in with:", email, nickname);
-      setUser(dummyUser);
-      setIsLoggedIn(true);
+    async (email: string, password: string) => {
+      try {
+        await loginAPI(email, password); // response에 user정보(userId, nickname) 필요
+        setUser(dummyUser);
+        setIsLoggedIn(true);
+      } catch {
+        alert("로그인에 실패하였습니다.");
+      }
     },
     [dummyUser]
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await logoutAPI();
     setUser(null);
     setIsLoggedIn(false);
     router.push("/login");
   }, [router]);
 
   const updateProfile = useCallback(
-    (newNickname: string, newProfileImage?: string) => {
-      setUser((prevUser) => {
-        if (!prevUser) return null;
-        return {
-          ...prevUser,
-          nickname: newNickname,
-          profileImage: newProfileImage || prevUser.profileImage,
-        };
-      });
-      alert("프로필이 업데이트되었습니다.");
+    async (newNickname?: string, newProfileImage?: string) => {
+      if (!user) {
+        return;
+      }
+      const updateUserData: UpdateUserProfileRequest = {
+        userId: user.id,
+        userName: newNickname,
+        profileImgUrl: newProfileImage,
+      };
+
+      try {
+        await updateUserProfileAPI(updateUserData);
+        setUser((prevUser) => {
+          if (!prevUser) return null;
+          return {
+            ...prevUser,
+            nickname: newNickname || prevUser.nickname,
+            profileImage: newProfileImage || prevUser.profileImage,
+          };
+        });
+        alert("프로필이 업데이트되었습니다.");
+      } catch {
+        alert("프로필 업데이트에 실패하였습니다.");
+      }
     },
     []
   );
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string): Promise<boolean> => {
-      console.log(currentPassword);
-      console.log(newPassword);
+      
       return new Promise((resolve) => {
         setTimeout(() => {
           alert("비밀번호가 변경되었습니다.");
