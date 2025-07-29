@@ -10,7 +10,6 @@ import Modal from "@/components/ui/modal";
 import TermsContent from "@/components/terms";
 import PrivacyContent from "@/components/privacy";
 import Footer from "@/components/footer";
-import { useAuth } from "@/context/auth-context";
 import {
   sendRegistrationCodeAPI,
   signUpAPI,
@@ -40,7 +39,6 @@ interface FormErrors {
 
 function Signup() {
   const router = useRouter();
-  const { login } = useAuth();
 
   const [formData, setFormData] = useState<FormData>({
     email: "",

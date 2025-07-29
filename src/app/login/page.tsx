@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useAuth } from "@/context/auth-context";
-import { loginAPI } from "@/api/authApi";
 
 export default function Login() {
   const router = useRouter();

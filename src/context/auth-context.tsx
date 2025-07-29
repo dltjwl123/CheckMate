@@ -2,7 +2,6 @@
 
 import { deleteUserAPI, loginAPI, logoutAPI } from "@/api/authApi";
 import {
-  getUserDataAPI,
   updateUserPasswordAPI,
   updateUserProfileAPI,
   UpdateUserProfileRequest,
@@ -102,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         alert("프로필 업데이트에 실패하였습니다.");
       }
     },
-    []
+    [user]
   );
 
   const changePassword = useCallback(
@@ -124,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       return false;
     }
-  }, [logout]);
+  }, []);
 
   const value = {
     user,
