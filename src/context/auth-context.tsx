@@ -1,5 +1,11 @@
 "use client";
 
+import { deleteUserAPI, loginAPI, logoutAPI } from "@/api/authApi";
+import {
+  updateUserPasswordAPI,
+  updateUserProfileAPI,
+  UpdateUserProfileRequest,
+} from "@/api/userApi";
 import { useRouter } from "next/navigation";
 import React, {
   useState,
@@ -10,6 +16,7 @@ import React, {
 } from "react";
 
 interface User {
+  id: number;
   email: string;
   nickname: string;
   profileImage?: string;
@@ -18,9 +25,12 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (email: string, nickname: string) => void;
-  logout: () => void;
-  updateProfile: (newNickname: string, newProfileImage?: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (
+    newNickname: string,
+    newProfileImage?: string
+  ) => Promise<void>;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -33,69 +43,87 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dummyUser: User = useMemo(
     () => ({
+      id: 0,
       email: "test@example.com",
       nickname: "청운종",
       profileImage: "/placeholder.svg?height=40&width=40",
     }),
     []
   );
-  const [user, setUser] = useState<User | null>(dummyUser);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const router = useRouter();
 
   const login = useCallback(
-    (email: string, nickname: string) => {
-      console.log("Logging in with:", email, nickname);
-      setUser(dummyUser);
-      setIsLoggedIn(true);
+    async (email: string, password: string) => {
+      try {
+        await loginAPI(email, password);
+        setUser(dummyUser);
+        setIsLoggedIn(true);
+      } catch (error) {
+        alert("로그인에 실패하였습니다.");
+        throw error;
+      }
     },
     [dummyUser]
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await logoutAPI();
     setUser(null);
     setIsLoggedIn(false);
     router.push("/login");
   }, [router]);
 
   const updateProfile = useCallback(
-    (newNickname: string, newProfileImage?: string) => {
-      setUser((prevUser) => {
-        if (!prevUser) return null;
-        return {
-          ...prevUser,
-          nickname: newNickname,
-          profileImage: newProfileImage || prevUser.profileImage,
-        };
-      });
-      alert("프로필이 업데이트되었습니다.");
+    async (newNickname?: string, newProfileImage?: string) => {
+      if (!user) {
+        return;
+      }
+      const updateUserData: UpdateUserProfileRequest = {
+        userId: user.id,
+        userName: newNickname,
+        profileImgUrl: newProfileImage,
+      };
+
+      try {
+        await updateUserProfileAPI(updateUserData);
+        setUser((prevUser) => {
+          if (!prevUser) return null;
+          return {
+            ...prevUser,
+            nickname: newNickname || prevUser.nickname,
+            profileImage: newProfileImage || prevUser.profileImage,
+          };
+        });
+        alert("프로필이 업데이트되었습니다.");
+      } catch {
+        alert("프로필 업데이트에 실패하였습니다.");
+      }
     },
-    []
+    [user]
   );
 
   const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string): Promise<boolean> => {
-      console.log(currentPassword);
-      console.log(newPassword);
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          alert("비밀번호가 변경되었습니다.");
-          resolve(true);
-        }, 1000);
-      });
+    async (newPassword: string): Promise<boolean> => {
+      try {
+        await updateUserPasswordAPI(newPassword);
+        return true;
+      } catch {
+        return false;
+      }
     },
     []
   );
 
   const deleteAccount = useCallback(async (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        alert("계정이 삭제되었습니다.");
-        logout();
-        resolve(true);
-      }, 1000);
-    });
-  }, [logout]);
+    try {
+      await deleteUserAPI();
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
   const value = {
     user,

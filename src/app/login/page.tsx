@@ -21,13 +21,13 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
 
-    // WIP : login api
-    setTimeout(() => {
-      login("apiRin@naver.com", "청운종");
-      alert("로그인 성공!");
+    try {
+      await login(email, password);
       setIsLoading(false);
       router.push("/");
-    }, 1000);
+    } catch {
+      return;
+    }
   };
 
   const handleSignup = () => {

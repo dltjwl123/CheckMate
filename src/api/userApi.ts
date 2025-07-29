@@ -74,10 +74,11 @@ export const getReviewDataAPI = async (userId: number) => {
 
 export interface UpdateUserProfileRequest {
   userId: number;
-  userName: string;
-  profileImgUrl: string;
+  userName?: string;
+  profileImgUrl?: string;
 }
 
+// 업데이트 된 프로필을 response로 받아서 재확인 하는 절차 필요
 export const updateUserProfileAPI = async (data: UpdateUserProfileRequest) => {
   try {
     await axiosInstance.post("user/my-page/profile-update", data);

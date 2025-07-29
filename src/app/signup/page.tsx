@@ -10,7 +10,6 @@ import Modal from "@/components/ui/modal";
 import TermsContent from "@/components/terms";
 import PrivacyContent from "@/components/privacy";
 import Footer from "@/components/footer";
-import { useAuth } from "@/context/auth-context";
 import {
   sendRegistrationCodeAPI,
   signUpAPI,
@@ -21,6 +20,7 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  nickname: string;
 }
 
 interface AgreementData {
@@ -33,17 +33,18 @@ interface FormErrors {
   password?: string;
   confirmPassword?: string;
   verificationCode?: string;
+  nickname?: string;
   general?: string;
 }
 
 function Signup() {
   const router = useRouter();
-  const { login } = useAuth();
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
     confirmPassword: "",
+    nickname: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
@@ -99,7 +100,8 @@ function Signup() {
     setErrors((prev) => ({ ...prev, verificationCode: "" }));
 
     try {
-      verifyRegistrationCodeAPI(formData.email, verificationCode);
+      await verifyRegistrationCodeAPI(formData.email, verificationCode);
+      setIsEmailVerified(true);
     } catch {
       setErrors((prev) => ({
         ...prev,
@@ -125,11 +127,11 @@ function Signup() {
     }
 
     setIsSendingCode(true);
+    setIsEmailVerified(false);
     setErrors((prev) => ({ ...prev, email: "", general: "" }));
 
     try {
       await sendRegistrationCodeAPI(formData.email);
-      console.log("qwer");
       setIsCodeSent(true);
       setShowVerificationInput(true);
     } catch {
@@ -209,11 +211,8 @@ function Signup() {
     setIsSigningUp(true);
 
     try {
-      signUpAPI(formData.email, formData.password, "청운종");
-      setTimeout(() => {
-        login("apiRin@example.com", "청운종");
-        router.push("/login");
-      });
+      await signUpAPI(formData.email, formData.password, formData.nickname);
+      router.push("/login");
     } catch {
       setErrors((prev) => ({
         ...prev,
@@ -333,26 +332,39 @@ function Signup() {
                           errors.verificationCode
                             ? "border-red-300"
                             : "border-gray-300"
+                        } ${
+                          isEmailVerified
+                            ? "bg-gray-100 text-gray-500 cursor-not-allowed opacity-70"
+                            : ""
                         }`}
                         placeholder="인증코드를 입력하세요"
                         maxLength={6}
+                        disabled={isEmailVerified}
                       />
+                      <Button
+                        type="button"
+                        onClick={handleVerifyCode}
+                        disabled={
+                          isVerifyingCode ||
+                          !verificationCode ||
+                          isEmailVerified
+                        }
+                        className="whitespace-nowrap"
+                      >
+                        {isVerifyingCode
+                          ? "확인중..."
+                          : isEmailVerified
+                          ? "완료"
+                          : "확인"}
+                      </Button>
                     </div>
-                    <Button
-                      type="button"
-                      onClick={handleVerifyCode}
-                      disabled={isVerifyingCode || !verificationCode}
-                      className="whitespace-nowrap"
-                    >
-                      {isVerifyingCode ? "확인중..." : "확인"}
-                    </Button>
                     {errors.verificationCode && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.verificationCode}
                       </p>
                     )}
                     <p className="mt-1 text-sx text-gray-500">
-                      이메일로 발송된 인증코드 6자리를 입력해주세요. test:123456
+                      이메일로 발송된 인증코드 6자리를 입력해주세요.
                     </p>
                   </div>
                 )}
@@ -366,6 +378,36 @@ function Signup() {
                     </span>
                   </div>
                 )}
+
+                {/* Nickname Input */}
+                <div>
+                  <label
+                    htmlFor="nickname"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    닉네임
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="nickname"
+                      name="nickname"
+                      type={"text"}
+                      required
+                      value={formData.nickname}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.password ? "border-red-300" : "border-gray-300"
+                      }`}
+                      placeholder="닉네임을 입력해 주세요"
+                      maxLength={16}
+                    />
+                  </div>
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.nickname}
+                    </p>
+                  )}
+                </div>
 
                 {/* Password Input */}
                 <div>

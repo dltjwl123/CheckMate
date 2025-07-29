@@ -46,6 +46,7 @@ export const signUpAPI = async (
   }
 };
 
+// 1. 닉네임을 response로 받아야 할 듯
 export const loginAPI = async (email: string, password: string) => {
   try {
     await axiosInstance.post("auth/login", {
