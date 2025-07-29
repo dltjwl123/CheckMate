@@ -10,12 +10,11 @@ import Table, {
 } from "@/components/table";
 import Badge from "@/components/ui/badge";
 import Footer from "@/components/footer";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   getProblemListAPI,
   Problem,
   problemFilterRequest,
-  ProblemListResponse,
 } from "@/api/problemApi";
 import Button from "@/components/ui/button";
 
@@ -45,13 +44,10 @@ function Main() {
 
   // search states
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [searchedProblems, setSearchedProblems] =
-    useState<Problem[]>([]);
-  const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [searchedProblems, setSearchedProblems] = useState<Problem[]>([]);
 
   const handleSearch = async (page: number = 1) => {
     setIsSearching(true);
-    setHasSearched(true);
 
     const searchResquest: problemFilterRequest = {
       title: filters.title,
@@ -264,7 +260,7 @@ function Main() {
                       }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
-                    focus:outline-none focus: ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    focus:outline-none focus: ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">전체</option>
                     <option value="2024">2024</option>
