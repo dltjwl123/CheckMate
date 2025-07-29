@@ -23,12 +23,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await loginAPI(email, password);
-      login(email, "청운종");
+      await login(email, password);
       setIsLoading(false);
       router.push("/");
     } catch {
-      alert("로그인에 실패하였습니다.");
+      return;
     }
   };
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { loginAPI, logoutAPI } from "@/api/authApi";
+import { deleteUserAPI, loginAPI, logoutAPI } from "@/api/authApi";
 import {
   getUserDataAPI,
+  updateUserPasswordAPI,
   updateUserProfileAPI,
   UpdateUserProfileRequest,
 } from "@/api/userApi";
@@ -25,9 +26,12 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (email: string, nickname: string) => void;
-  logout: () => void;
-  updateProfile: (newNickname: string, newProfileImage?: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (
+    newNickname: string,
+    newProfileImage?: string
+  ) => Promise<void>;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -47,18 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }),
     []
   );
-  const [user, setUser] = useState<User | null>(dummyUser);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const router = useRouter();
 
   const login = useCallback(
     async (email: string, password: string) => {
       try {
-        await loginAPI(email, password); // response에 user정보(userId, nickname) 필요
+        await loginAPI(email, password);
         setUser(dummyUser);
         setIsLoggedIn(true);
-      } catch {
+      } catch (error) {
         alert("로그인에 실패하였습니다.");
+        throw error;
       }
     },
     [dummyUser]
@@ -101,26 +106,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string): Promise<boolean> => {
-      
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          alert("비밀번호가 변경되었습니다.");
-          resolve(true);
-        }, 1000);
-      });
+    async (newPassword: string): Promise<boolean> => {
+      try {
+        await updateUserPasswordAPI(newPassword);
+        return true;
+      } catch {
+        return false;
+      }
     },
     []
   );
 
   const deleteAccount = useCallback(async (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        alert("계정이 삭제되었습니다.");
-        logout();
-        resolve(true);
-      }, 1000);
-    });
+    try {
+      await deleteUserAPI();
+      return true;
+    } catch {
+      return false;
+    }
   }, [logout]);
 
   const value = {
