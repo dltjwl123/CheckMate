@@ -81,6 +81,7 @@ export interface Answer {
   answerStatus: "CORRECT" | "WRONG";
 }
 
+//year, solved
 export interface ProblemDetailResponse {
   id: number;
   examId: number;
@@ -95,6 +96,8 @@ export interface ProblemDetailResponse {
   answer: number;
   tags: ProblemTag[];
   answers: Answer[];
+  year: number,
+  solved: boolean,
 }
 
 export const getProblemDetailAPI = async (problemId: number) => {

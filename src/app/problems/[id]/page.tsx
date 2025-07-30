@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
@@ -8,6 +8,7 @@ import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Image from "next/image";
+import { getProblemDetailAPI, ProblemDetailResponse } from "@/api/problemApi";
 
 const problemsData = [
   {
@@ -70,13 +71,33 @@ const problemsData = [
 function Problem() {
   const { id } = useParams();
   const problemId = Number.parseInt(id as string);
-  const problem =
-    problemsData.find((p) => p.id === problemId) || problemsData[0];
-  const [solutionImages, setSolutionImages] = useState<string[]>(
-    problem.solutionImages
-  );
+  const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [solutionImages, setSolutionImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const getProblemDetail = async () => {
+      setIsLoading(true);
+      try {
+        const problemDetail = await getProblemDetailAPI(problemId);
+
+        if (!problemDetail) {
+          throw "error";
+        }
+
+        setProblem(problemDetail);
+        setSolutionImages(problemDetail.problemImgSolutions);
+      } catch {
+        alert("문제 불러오기에 실패하였습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getProblemDetail();
+  }, [id]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -116,6 +137,16 @@ function Problem() {
     alert("풀이 제출이 완료되었습니다.");
   };
 
+  if (isLoading || !problem) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="text-gray-500 text-lg animate-pulse">
+          문제를 불러오는 중입니다...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -145,18 +176,18 @@ function Problem() {
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <span>{problem.year}</span>
+                    <span>{problem!.year}</span>
                     <span>.</span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        problem.correctRate < 30
+                        problem.accuracyRate < 30
                           ? "bg-red-100 text-red-800"
-                          : problem.correctRate < 60
+                          : problem.accuracyRate < 60
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      정답률 {problem.correctRate}%
+                      정답률 {problem.accuracyRate}%
                     </span>
                     <span>.</span>
                     {problem.solved ? (
@@ -173,8 +204,8 @@ function Problem() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {problem.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
+                    <Badge key={tag.name} variant="secondary">
+                      {tag.name}
                     </Badge>
                   ))}
                 </div>
@@ -187,7 +218,7 @@ function Problem() {
                 </div>
                 <div className="flex justify-center p-4">
                   <Image
-                    src={problem.imageUrl || "/dummyPlaceholder.svg"}
+                    src={problem.problemImageUrl || "/dummyPlaceholder.svg"}
                     alt={`${problem.title} 문제 이미지`}
                     width={800}
                     height={600}
