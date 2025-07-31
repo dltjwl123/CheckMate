@@ -74,11 +74,13 @@ export interface ProblemTag {
   name: string;
 }
 
+// ISO time
 export interface Answer {
   id: number;
   userId: number;
   username: string;
   answerStatus: "CORRECT" | "WRONG";
+  submittedTime: Date; //ISO
 }
 
 //year, solved
@@ -96,8 +98,8 @@ export interface ProblemDetailResponse {
   answer: number;
   tags: ProblemTag[];
   answers: Answer[];
-  year: number,
-  solved: boolean,
+  year: number;
+  solved: boolean;
 }
 
 export const getProblemDetailAPI = async (problemId: number) => {

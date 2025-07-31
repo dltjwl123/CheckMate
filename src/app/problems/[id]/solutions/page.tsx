@@ -1,5 +1,6 @@
 "use client";
 
+import { getProblemDetailAPI, ProblemDetailResponse } from "@/api/problemApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Table, {
@@ -15,6 +16,7 @@ import { getRelativeTime } from "@/utils/time";
 import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 //sample problem data
 const problemsData = [
@@ -118,15 +120,39 @@ export default function SolutionPage() {
   const { id } = useParams();
   const router = useRouter();
   const problemId = Number.parseInt(id as string);
+  const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const problem =
-    problemsData.find((p) => p.id === problemId) || problemsData[0];
-  const correctSolutions = solutionsData.filter((s) => s.isCorrect).length;
-  const totalSolutions = solutionsData.length;
-  const correctRate =
-    totalSolutions > 0
-      ? ((correctSolutions / totalSolutions) * 100).toFixed(1)
-      : 0;
+  useEffect(() => {
+    const getProblemDetail = async () => {
+      setIsLoading(true);
+      try {
+        const problemDetail = await getProblemDetailAPI(problemId);
+
+        if (!problemDetail) {
+          throw "error";
+        }
+
+        setProblem(problemDetail);
+      } catch {
+        alert("문제 불러오기에 실패하였습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getProblemDetail();
+  }, [id]);
+
+  if (isLoading || !problem) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="text-gray-500 text-lg animate-pulse">
+          문제를 불러오는 중입니다...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-h-screen bg-gray-50 flex flex-col">
@@ -154,14 +180,14 @@ export default function SolutionPage() {
                     <span>.</span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        problem.correctRate < 30
+                        problem.accuracyRate < 30
                           ? "bg-red-100 text-red-800"
-                          : problem.correctRate < 60
+                          : problem.accuracyRate < 60
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      정답률 {problem.correctRate}%
+                      정답률 {problem.accuracyRate}%
                     </span>
                   </div>
                   <CardTitle className="text-2xl mb-2">
@@ -169,8 +195,8 @@ export default function SolutionPage() {
                   </CardTitle>
                   <div className="flex flex-wrap gap-1">
                     {problem.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
+                      <Badge key={tag.name} variant="secondary">
+                        {tag.name}
                       </Badge>
                     ))}
                   </div>
@@ -184,7 +210,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-gray-900">
-                  {totalSolutions}
+                  {problem.submissionCount}
                 </div>
                 <div className="text-sm text-gray-600">총 제출 수</div>
               </CardContent>
@@ -192,7 +218,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-green-900">
-                  {correctSolutions}
+                  {problem.correctSubmissionCount}
                 </div>
                 <div className="text-sm text-gray-600">정답 제출</div>
               </CardContent>
@@ -200,7 +226,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-blue-900">
-                  {correctRate}%
+                  {problem.accuracyRate}%
                 </div>
                 <div className="text-sm text-gray-600">정답률</div>
               </CardContent>
@@ -225,19 +251,21 @@ export default function SolutionPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {solutionsData.map((solution) => (
+                  {problem.answers.map((solution) => (
                     <TableRow
                       key={solution.id}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() => {
-                        router.push(`/problems/${problemId}/solutions/${solution.submissionNumber}`);
+                        router.push(
+                          `/problems/${problemId}/solutions/${solution.id}`
+                        );
                       }}
                     >
                       <TableCell className="font-mono text-sm">
-                        {solution.submissionNumber}
+                        {solution.id}
                       </TableCell>
                       <TableCell className="text-center">
-                        {solution.isCorrect ? (
+                        {solution.answerStatus === "CORRECT" ? (
                           <div className="inline-flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
                             <Check className="h-4 w-4 text-green-600" />
                           </div>
@@ -249,11 +277,11 @@ export default function SolutionPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium text-gray-900">
-                          {solution.submitter}
+                          {solution.username}
                         </div>
                       </TableCell>
                       <TableCell className="text-right text-sm text-gray-500">
-                        {getRelativeTime(solution.submittedAt)}
+                        {getRelativeTime(solution.submittedTime)}
                       </TableCell>
                     </TableRow>
                   ))}
