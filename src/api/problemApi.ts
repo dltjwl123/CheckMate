@@ -112,3 +112,36 @@ export const getProblemDetailAPI = async (problemId: number) => {
     apiErrorHandler(error);
   }
 };
+
+export interface AiReview {
+  id: number;
+  content: string;
+  rating: number;
+  createdAt: string;
+}
+
+export interface AnswerDetailResponse {
+  id: number;
+  year: number;
+  accuracyRate: number;
+  tagNames: string[];
+  problemTitle: string | null;
+  username: string;
+  status: "REVIEWED" | "PENDING" | "REJECTED";
+  submittedAt: Date;
+  answerImgSolutions: string[];
+  aiReview: AiReview | null;
+  userReviews: any[];
+  officialSolution: string,
+}
+
+export const getSolutionDetailAPI = async (solutionId: number) => {
+  try {
+    const res = await axiosInstance.get(`answer/detail/${solutionId}`);
+    const data: AnswerDetailResponse = res.data;
+
+    return data;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};

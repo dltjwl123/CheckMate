@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  AnswerDetailResponse,
+  getProblemDetailAPI,
+  getSolutionDetailAPI,
+  ProblemDetailResponse,
+} from "@/api/problemApi";
+import { ReviewDetailResponse } from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
@@ -17,7 +24,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // 샘플 문제 데이터
 const problemsData = [
@@ -283,11 +290,10 @@ export default function SolutionsDetailPage() {
   const { id, solutionId } = useParams();
   const problemId = Number.parseInt(id as string);
   const solutuionIdStr = solutionId as string;
-
-  const problem =
-    problemsData.find((p) => p.id === problemId) || problemsData[0];
-  const solution =
-    solutionsData.find((s) => s.id === solutuionIdStr) || solutionsData[0];
+  const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [solution, setSolution] = useState<AnswerDetailResponse | null>(null);
+  const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
 
   const [activeTab, setActiveTab] = useState<
     "submitted" | "aiGrading" | "official" | "review"
@@ -296,6 +302,61 @@ export default function SolutionsDetailPage() {
     useState<number>(0);
   const [activeReviewIndex, setActiveReviewIndex] = useState<number>(0);
   const [activeReviewPageIndex, setActiveReviewPageIndex] = useState<number>(0);
+
+  useEffect(() => {
+    const getProblemDetail = async () => {
+      setIsLoading(true);
+      try {
+        const problemDetail = await getProblemDetailAPI(problemId);
+
+        if (!problemDetail) {
+          throw "error";
+        }
+
+        setProblem(problemDetail);
+      } catch {
+        alert("문제 불러오기에 실패하였습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getProblemDetail();
+  }, [id]);
+
+  useEffect(() => {
+    const getSolutionDetail = async () => {
+      if (!problem) {
+        return;
+      }
+
+      setIsSolutionLoading(true);
+      try {
+        const solutionDetail = await getSolutionDetailAPI(
+          problem.answers[0].id // TODO: 다중 answer 처리
+        );
+        if (!solutionDetail) {
+          throw "error";
+        }
+      } catch {
+        alert("풀이 불러오기에 실패하였습니다.");
+      } finally {
+        setIsSolutionLoading(false);
+      }
+    };
+
+    getSolutionDetail();
+  }, [problem]);
+
+  if (isLoading || !problem || isSolutionLoading || !solution) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="text-gray-500 text-lg animate-pulse">
+          문제를 불러오는 중입니다...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -322,21 +383,21 @@ export default function SolutionsDetailPage() {
                   <span>•</span>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      problem.correctRate < 30
+                      problem.accuracyRate < 30
                         ? "bg-red-100 text-red-800"
-                        : problem.correctRate < 60
+                        : problem.accuracyRate < 60
                         ? "bg-yellow-100 text-yellow-800"
                         : "bg-green-100 text-green-800"
                     }`}
                   >
-                    정답률 {problem.correctRate}%
+                    정답률 {problem.accuracyRate}%
                   </span>
                 </div>
                 <CardTitle className="text-2xl mb-2">{problem.title}</CardTitle>
                 <div className="flex flex-wrap gap-1 mb-4">
                   {problem.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
+                    <Badge key={tag.name} variant="secondary">
+                      {tag.name}
                     </Badge>
                   ))}
                 </div>
@@ -345,10 +406,10 @@ export default function SolutionsDetailPage() {
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    <span>{solution.submitter}</span>
+                    <span>{solution.username}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    {solution.isCorrect ? (
+                    {solution.status === "REVIEWED" ? (
                       <>
                         <Check className="h-4 w-4 text-green-600" />
                         <span className="text-green-600">정답</span>
@@ -407,7 +468,7 @@ export default function SolutionsDetailPage() {
             }`}
             onClick={() => setActiveTab("review")}
           >
-            리뷰 ({solution.reviews?.length || 0})
+            리뷰 ({solution.userReviews?.length || 0})
           </button>
         </div>
 
@@ -422,49 +483,51 @@ export default function SolutionsDetailPage() {
             </CardHeader>
             <CardContent>
               {/* Page Preview */}
-              {solution.imageUrls && solution.imageUrls.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center mb-4">
-                  {solution.imageUrls.map((img, index) => (
-                    <div
-                      key={index}
-                      className={`relative w-20 h-20 border
+              {solution.answerImgSolutions &&
+                solution.answerImgSolutions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    {solution.answerImgSolutions.map((img, index) => (
+                      <div
+                        key={index}
+                        className={`relative w-20 h-20 border
                         rounded-md overflow-hidden cursor-pointer
                         ${
                           activeSubmittedImageIndex === index
                             ? "border-blue-500 ring-2 ring-blue-500"
                             : "border-gray-200"
                         }`}
-                      onClick={() => setActiveSubmittedImageIndex(index)}
-                    >
-                      <Image
-                        src={img || "/placeholder.svg"}
-                        alt={`Solution Page ${index + 1}`}
-                        fill
-                        style={{ objectFit: "cover" }}
-                        className="rounded-md"
-                      />
-                      <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
-                        {index + 1}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        onClick={() => setActiveSubmittedImageIndex(index)}
+                      >
+                        <Image
+                          src={img || "/placeholder.svg"}
+                          alt={`Solution Page ${index + 1}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          className="rounded-md"
+                        />
+                        <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
+                          {index + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
               <div className="bg-white rounded-md overflow-hidden border border-gray-200">
                 <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 border-b border-gray-200">
-                  {solution.submitter}님의 풀이 ({solution.id})
-                  {solution.imageUrls &&
-                    solution.imageUrls.length > 0 &&
+                  {solution.username}님의 풀이 ({solution.id})
+                  {solution.answerImgSolutions &&
+                    solution.answerImgSolutions.length > 0 &&
                     ` (페이지 ${activeSubmittedImageIndex + 1} / ${
-                      solution.imageUrls.length
+                      solution.answerImgSolutions.length
                     })`}
                 </div>
                 <div className="flex justify-center p-4">
                   <Image
                     src={
-                      solution.imageUrls?.[activeSubmittedImageIndex] ||
-                      "/placeholder.svg"
+                      solution.answerImgSolutions?.[
+                        activeSubmittedImageIndex
+                      ] || "/placeholder.svg"
                     }
                     alt={`Solution Page ${activeSubmittedImageIndex + 1}`}
                     width={600}
@@ -484,14 +547,16 @@ export default function SolutionsDetailPage() {
                 <Bot className="h-5 w-5 text-green-600" />
                 AI 채점 결과
                 <Badge
-                  variant={solution.isCorrect ? "default" : "outline"}
+                  variant={
+                    solution.status === "REVIEWED" ? "default" : "outline"
+                  }
                   className={
-                    solution.isCorrect
+                    solution.status === "REVIEWED"
                       ? "bgf-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }
                 >
-                  {solution.aiGrading.score}점
+                  {solution.aiReview!.rating}점
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -500,8 +565,11 @@ export default function SolutionsDetailPage() {
                 <div
                   className="whitespace-pre-wrap text-gray-700 leading-relaxed"
                   dangerouslySetInnerHTML={{
-                    __html: solution.aiGrading.feedback
-                      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                    __html: solution
+                      .aiReview!.content.replace(
+                        /\*\*(.*?)\*\*/g,
+                        "<strong>$1</strong>"
+                      )
                       .replace(
                         /\$\$(.*?)\$\$/g,
                         `<span class="font-mono bg-gray-100 px-1 rounded">$1</span>`
@@ -517,7 +585,7 @@ export default function SolutionsDetailPage() {
           </Card>
         )}
 
-        {activeTab === "official" && (
+        {activeTab === "official" && solution.officialSolution && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -530,7 +598,7 @@ export default function SolutionsDetailPage() {
                 <div
                   className="whitespace-pre-wrap text-gray-700 leading-relaxed"
                   dangerouslySetInnerHTML={{
-                    __html: solution.officialSolution.content
+                    __html: solution.officialSolution
                       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
                       .replace(
                         /\$\$(.*?)\$\$/g,
@@ -556,7 +624,7 @@ export default function SolutionsDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {solution.reviews && solution.reviews.length > 0 ? (
+              {solution.userReviews && solution.userReviews.length > 0 ? (
                 <>
                   {/* Dropdown */}
                   <div className="mb-4">
@@ -572,7 +640,7 @@ export default function SolutionsDetailPage() {
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      {solution.reviews.map((review, index) => (
+                      {solution.userReviews.map((review, index) => (
                         <option key={index} value={index}>
                           {review.reviewer}님의 리뷰 (
                           {getRelativeTime(review.submittedAt)})
@@ -582,10 +650,10 @@ export default function SolutionsDetailPage() {
                   </div>
 
                   {/* Review Preview */}
-                  {solution.reviews[activeReviewIndex]?.pages &&
-                    solution.reviews[activeReviewIndex].pages.length > 0 && (
+                  {solution.userReviews[activeReviewIndex]?.pages &&
+                    solution.userReviews[activeReviewIndex].pages.length > 0 && (
                       <div className="flex flex-wrap gap-2 justify-center mb-4">
-                        {solution.reviews[activeReviewIndex].pages.map(
+                        {solution.userReviews[activeReviewIndex].pages.map(
                           (page, index) => (
                             <div
                               key={index}
