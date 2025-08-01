@@ -19,21 +19,21 @@ import {
 import Button from "@/components/ui/button";
 
 interface Filter {
-  year: number;
-  title: string;
-  correctRateMin: number;
-  correctRateMax: number;
-  tag: string;
+  year: number | null;
+  title: string | null;
+  correctRateMin: number | null;
+  correctRateMax: number | null;
+  tag: string | null;
 }
 
 function Main() {
   const router = useRouter();
   const [filters, setFilters] = useState<Filter>({
-    year: 0,
-    title: "",
-    correctRateMax: 100,
-    correctRateMin: 0,
-    tag: "",
+    year: null,
+    title: null,
+    correctRateMax: null,
+    correctRateMin: null,
+    tag: null,
   });
 
   // pagenation states
@@ -45,16 +45,20 @@ function Main() {
   // search states
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchedProblems, setSearchedProblems] = useState<Problem[]>([]);
-
+  console.log("filters:", filters);
   const handleSearch = async (page: number = 1) => {
     setIsSearching(true);
 
     const searchResquest: problemFilterRequest = {
-      title: filters.title,
-      year: filters.year,
-      maxAccuracyRate: filters.correctRateMax,
-      minAccuracyRate: filters.correctRateMin,
-      tagName: filters.tag,
+      ...(filters.title !== null && { title: filters.title }),
+      ...(filters.year !== null && { year: filters.year }),
+      ...(filters.correctRateMax !== null && {
+        maxAccuracyRate: filters.correctRateMax,
+      }),
+      ...(filters.correctRateMin !== null && {
+        minAccuracyRate: filters.correctRateMin,
+      }),
+      ...(filters.tag !== null && { tagName: filters.tag }),
     };
 
     try {
@@ -82,11 +86,11 @@ function Main() {
 
   const resetFilter = () => {
     setFilters({
-      year: 0,
-      title: "",
-      correctRateMax: 100,
-      correctRateMin: 0,
-      tag: "",
+      year: null,
+      title: null,
+      correctRateMax: null,
+      correctRateMin: null,
+      tag: null,
     });
   };
 
@@ -252,17 +256,20 @@ function Main() {
                   </label>
                   <select
                     id="year-filter"
-                    value={filters.year}
+                    value={filters.year !== null ? filters.year : "전체"}
                     onChange={(e) =>
                       setFilters((prev) => ({
                         ...prev,
-                        year: Number(e.target.value),
+                        year:
+                          e.target.value !== "전체"
+                            ? Number(e.target.value)
+                            : null,
                       }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
                     focus:outline-none focus: ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="">전체</option>
+                    <option value="전체">전체</option>
                     <option value="2024">2024</option>
                     <option value="2023">2023</option>
                     <option value="2022">2022</option>
@@ -282,11 +289,11 @@ function Main() {
                   <input
                     id="title-filter"
                     type="text"
-                    value={filters.title}
+                    value={filters.title !== null ? filters.title : ""}
                     onChange={(e) =>
                       setFilters((prev) => ({
                         ...prev,
-                        title: e.target.value,
+                        title: e.target.value !== "" ? e.target.value : null,
                       }))
                     }
                     placeholder="문제 제목을 입력하세요"
@@ -306,11 +313,11 @@ function Main() {
                   <input
                     id="tag-filter"
                     type="text"
-                    value={filters.tag}
+                    value={filters.tag !== null ? filters.tag : ""}
                     onChange={(e) =>
                       setFilters((prev) => ({
                         ...prev,
-                        tag: e.target.value,
+                        tag: e.target.value !== "" ? e.target.value : null,
                       }))
                     }
                     placeholder="태그를 입력하세요"
@@ -326,7 +333,11 @@ function Main() {
                   <div className="flex gap-2">
                     <input
                       type="number"
-                      value={filters.correctRateMin}
+                      value={
+                        filters.correctRateMin !== null
+                          ? filters.correctRateMin
+                          : ""
+                      }
                       onChange={(e) =>
                         setFilters((prev) => ({
                           ...prev,
@@ -342,7 +353,11 @@ function Main() {
                     <span className="flex items-center text-gray-500">~</span>
                     <input
                       type="number"
-                      value={filters.correctRateMax}
+                      value={
+                        filters.correctRateMax !== null
+                          ? filters.correctRateMax
+                          : ""
+                      }
                       onChange={(e) =>
                         setFilters((prev) => ({
                           ...prev,
