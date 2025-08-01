@@ -10,7 +10,7 @@ import Table, {
 } from "@/components/table";
 import Badge from "@/components/ui/badge";
 import Footer from "@/components/footer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getProblemListAPI,
   Problem,
@@ -45,7 +45,7 @@ function Main() {
   // search states
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchedProblems, setSearchedProblems] = useState<Problem[]>([]);
-  console.log("filters:", filters);
+
   const handleSearch = async (page: number = 1) => {
     setIsSearching(true);
 
@@ -209,6 +209,10 @@ function Main() {
       </div>
     );
   };
+
+  useEffect(() => {
+    handleSearch(1);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
