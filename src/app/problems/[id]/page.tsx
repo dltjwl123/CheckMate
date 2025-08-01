@@ -8,13 +8,18 @@ import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Image from "next/image";
-import { getProblemDetailAPI, ProblemDetailResponse } from "@/api/problemApi";
+import {
+  getProblemDetailAPI,
+  getSolutionDetailAPI,
+  ProblemDetailResponse,
+} from "@/api/problemApi";
 
 function Problem() {
   const { id } = useParams();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
   const [solutionImages, setSolutionImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
@@ -30,7 +35,6 @@ function Problem() {
         }
 
         setProblem(problemDetail);
-        setSolutionImages(problemDetail.problemImgSolutions);
       } catch {
         alert("문제 불러오기에 실패하였습니다.");
       } finally {
@@ -40,6 +44,37 @@ function Problem() {
 
     getProblemDetail();
   }, [id]);
+
+  //fetch last solution data
+  useEffect(() => {
+    const fetchLastSolution = async () => {
+      if (!problem) {
+        return;
+      }
+      const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
+
+      if (!lastSolutionId) {
+        return;
+      }
+
+      setIsSolutionLoading(true);
+      try {
+        const data = await getSolutionDetailAPI(lastSolutionId);
+
+        if (!data) {
+          throw "error";
+        }
+
+        setSolutionImages(data.answerImgSolutions);
+      } catch {
+        alert("내 풀이 불러오기에 실패하였습니다");
+      } finally {
+        setIsSolutionLoading(false);
+      }
+    };
+
+    fetchLastSolution();
+  }, [problem]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -79,7 +114,7 @@ function Problem() {
     alert("풀이 제출이 완료되었습니다.");
   };
 
-  if (isLoading || !problem) {
+  if (isLoading || !problem || isSolutionLoading) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-50">
         <div className="text-gray-500 text-lg animate-pulse">
@@ -177,7 +212,7 @@ function Problem() {
               <CardTitle className="text-xl">내 풀이</CardTitle>
             </CardHeader>
             <CardContent>
-              {solutionImages ? (
+              {solutionImages.length !== 0 ? (
                 <div className="space-y-6">
                   {/* preview */}
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
