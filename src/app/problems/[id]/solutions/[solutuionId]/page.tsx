@@ -1,90 +1,90 @@
 "use client";
 
-import {
-  AnswerDetailResponse,
-  getProblemDetailAPI,
-  getSolutionDetailAPI,
-  ProblemDetailResponse,
-} from "@/api/problemApi";
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
-import Badge from "@/components/ui/badge";
-import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getRelativeTime } from "@/utils/time";
-import {
-  ArrowLeft,
-  BookOpen,
-  Bot,
-  Check,
-  MessagesSquare,
-  User,
-  X,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+// import {
+//   AnswerDetailResponse,
+//   getProblemDetailAPI,
+//   getSolutionDetailAPI,
+//   ProblemDetailResponse,
+// } from "@/api/problemApi";
+// import Footer from "@/components/footer";
+// import Navbar from "@/components/navbar";
+// import Badge from "@/components/ui/badge";
+// import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { getRelativeTime } from "@/utils/time";
+// import {
+//   ArrowLeft,
+//   BookOpen,
+//   Bot,
+//   Check,
+//   MessagesSquare,
+//   User,
+//   X,
+// } from "lucide-react";
+// import Image from "next/image";
+// import Link from "next/link";
+// import { useParams } from "next/navigation";
+// import { useEffect, useState } from "react";
 
 export default function SolutionsDetailPage() {
-  const { id } = useParams();
-  const problemId = Number.parseInt(id as string);
-  const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [solution, setSolution] = useState<AnswerDetailResponse | null>(null);
-  const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
-setSolution(null); //tmp
-  const [activeTab, setActiveTab] = useState<
-    "submitted" | "aiGrading" | "official" | "review"
-  >("submitted");
-  const [activeSubmittedImageIndex, setActiveSubmittedImageIndex] =
-    useState<number>(0);
-  const [activeReviewIndex, setActiveReviewIndex] = useState<number>(0);
-  const [activeReviewPageIndex, setActiveReviewPageIndex] = useState<number>(0);
+//   const { id } = useParams();
+//   const problemId = Number.parseInt(id as string);
+//   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
+//   const [isLoading, setIsLoading] = useState<boolean>(false);
+//   const [solution, setSolution] = useState<AnswerDetailResponse | null>(null);
+//   const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
+// setSolution(null); //tmp
+//   const [activeTab, setActiveTab] = useState<
+//     "submitted" | "aiGrading" | "official" | "review"
+//   >("submitted");
+//   const [activeSubmittedImageIndex, setActiveSubmittedImageIndex] =
+//     useState<number>(0);
+//   const [activeReviewIndex, setActiveReviewIndex] = useState<number>(0);
+//   const [activeReviewPageIndex, setActiveReviewPageIndex] = useState<number>(0);
 
-  useEffect(() => {
-    const getProblemDetail = async () => {
-      setIsLoading(true);
-      try {
-        const problemDetail = await getProblemDetailAPI(problemId);
+//   useEffect(() => {
+//     const getProblemDetail = async () => {
+//       setIsLoading(true);
+//       try {
+//         const problemDetail = await getProblemDetailAPI(problemId);
 
-        if (!problemDetail) {
-          throw "error";
-        }
+//         if (!problemDetail) {
+//           throw "error";
+//         }
 
-        setProblem(problemDetail);
-      } catch {
-        alert("문제 불러오기에 실패하였습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+//         setProblem(problemDetail);
+//       } catch {
+//         alert("문제 불러오기에 실패하였습니다.");
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     };
 
-    getProblemDetail();
-  }, [problemId]);
+//     getProblemDetail();
+//   }, [problemId]);
 
-  useEffect(() => {
-    const getSolutionDetail = async () => {
-      if (!problem) {
-        return;
-      }
+//   useEffect(() => {
+//     const getSolutionDetail = async () => {
+//       if (!problem) {
+//         return;
+//       }
 
-      setIsSolutionLoading(true);
-      try {
-        const solutionDetail = await getSolutionDetailAPI(
-          problem.answers[0].id // TODO: 다중 answer 처리
-        );
-        if (!solutionDetail) {
-          throw "error";
-        }
-      } catch {
-        alert("풀이 불러오기에 실패하였습니다.");
-      } finally {
-        setIsSolutionLoading(false);
-      }
-    };
+//       setIsSolutionLoading(true);
+//       try {
+//         const solutionDetail = await getSolutionDetailAPI(
+//           problem.answers[0].id // TODO: 다중 answer 처리
+//         );
+//         if (!solutionDetail) {
+//           throw "error";
+//         }
+//       } catch {
+//         alert("풀이 불러오기에 실패하였습니다.");
+//       } finally {
+//         setIsSolutionLoading(false);
+//       }
+//     };
 
-    getSolutionDetail();
-  }, [problem]);
+//     getSolutionDetail();
+//   }, [problem]);
 
   return null;
 
