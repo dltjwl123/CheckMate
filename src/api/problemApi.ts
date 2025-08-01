@@ -47,27 +47,27 @@ export interface ProblemListResponse {
   empty: boolean;
 }
 
-export const getProblemListAPI = async (
-  page: number,
-  size: number = 20,
-  sort: string = "title,asc",
-  filterData: problemFilterRequest
-) => {
-  try {
-    const res = await axiosInstance.post("problem/filter", filterData, {
-      params: {
-        page,
-        size,
-        sort,
-      },
-    });
-    const problemList: ProblemListResponse = res.data;
+export interface AiReview {
+  id: number;
+  content: string;
+  rating: number;
+  createdAt: string;
+}
 
-    return problemList;
-  } catch (error) {
-    apiErrorHandler(error);
-  }
-};
+export interface AnswerDetailResponse {
+  id: number;
+  year: number;
+  accuracyRate: number;
+  tagNames: string[];
+  problemTitle: string | null;
+  username: string;
+  status: "REVIEWED" | "PENDING" | "REJECTED";
+  submittedAt: Date;
+  answerImgSolutions: string[];
+  aiReview: AiReview | null;
+  userReviews: any[];
+  officialSolution: string;
+}
 
 export interface ProblemTag {
   id: number;
@@ -102,6 +102,34 @@ export interface ProblemDetailResponse {
   solved: boolean;
 }
 
+export interface submitUserSolutionRequest {
+  problemId: number;
+  answerImgUrls: string[];
+  answer: number;
+}
+
+export const getProblemListAPI = async (
+  page: number,
+  size: number = 20,
+  sort: string = "title,asc",
+  filterData: problemFilterRequest
+) => {
+  try {
+    const res = await axiosInstance.post("problem/filter", filterData, {
+      params: {
+        page,
+        size,
+        sort,
+      },
+    });
+    const problemList: ProblemListResponse = res.data;
+
+    return problemList;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
 export const getProblemDetailAPI = async (problemId: number) => {
   try {
     const res = await axiosInstance.get(`problem/detail/${problemId}`);
@@ -113,34 +141,22 @@ export const getProblemDetailAPI = async (problemId: number) => {
   }
 };
 
-export interface AiReview {
-  id: number;
-  content: string;
-  rating: number;
-  createdAt: string;
-}
-
-export interface AnswerDetailResponse {
-  id: number;
-  year: number;
-  accuracyRate: number;
-  tagNames: string[];
-  problemTitle: string | null;
-  username: string;
-  status: "REVIEWED" | "PENDING" | "REJECTED";
-  submittedAt: Date;
-  answerImgSolutions: string[];
-  aiReview: AiReview | null;
-  userReviews: any[];
-  officialSolution: string,
-}
-
 export const getSolutionDetailAPI = async (solutionId: number) => {
   try {
     const res = await axiosInstance.get(`answer/detail/${solutionId}`);
     const data: AnswerDetailResponse = res.data;
 
     return data;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const submitUserSolution = async (
+  reqBody: submitUserSolutionRequest
+) => {
+  try {
+    const res = await axiosInstance.post(`answers/submit-test-list`, reqBody);
   } catch (error) {
     apiErrorHandler(error);
   }

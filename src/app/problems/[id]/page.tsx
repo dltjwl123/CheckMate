@@ -12,17 +12,22 @@ import {
   getProblemDetailAPI,
   getSolutionDetailAPI,
   ProblemDetailResponse,
+  submitUserSolution,
 } from "@/api/problemApi";
+import { useAuth } from "@/context/auth-context";
 
 function Problem() {
   const { id } = useParams();
+  const { isLoggedIn } = useAuth();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
   const [solutionImages, setSolutionImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [answer, setAnswer] = useState<string>("");
 
   useEffect(() => {
     const getProblemDetail = async () => {
@@ -105,8 +110,31 @@ function Problem() {
     });
   };
 
-  const handleSubmit = () => {
-    alert("풀이 제출이 완료되었습니다.");
+  const handleChangingAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value.length > 3) {
+      return;
+    }
+
+    if (/^[1-9]\d*$/.test(value) || value === "") {
+      setAnswer(value);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await submitUserSolution({
+        answer: Number(answer),
+        answerImgUrls: solutionImages,
+        problemId,
+      });
+    } catch {
+      alert("풀이 제출에 실패하였습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading || !problem || isSolutionLoading) {
@@ -207,7 +235,18 @@ function Problem() {
               <CardTitle className="text-xl">내 풀이</CardTitle>
             </CardHeader>
             <CardContent>
-              {solutionImages.length !== 0 ? (
+              {!isLoggedIn ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600 mb-4">
+                    이 기능은 로그인 후 사용할 수 있습니다.
+                  </p>
+                  <Link href="/login">
+                    <Button variant="outline" className="mx-auto">
+                      로그인 하러가기
+                    </Button>
+                  </Link>
+                </div>
+              ) : solutionImages.length !== 0 ? (
                 <div className="space-y-6">
                   {/* preview */}
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
@@ -261,6 +300,24 @@ function Problem() {
                     </div>
                   </div>
 
+                  <div className="mb-4">
+                    <label
+                      htmlFor="answer"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      정답 입력
+                    </label>
+                    <input
+                      id="answer"
+                      name="answer"
+                      type="text"
+                      placeholder="정답을 입력하세요(양의 정수)"
+                      value={answer}
+                      onChange={handleChangingAnswer}
+                      className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+
                   <div className="flex justify-between items-center">
                     <div className="flex gap-4">
                       <label
@@ -273,7 +330,6 @@ function Problem() {
                           onClick={() => {
                             setSolutionImages([]);
                             setActiveImageIndex(0);
-                            document.getElementById("re-upload-file")?.click();
                           }}
                         >
                           <Upload className="h-4 w-4" />
@@ -321,10 +377,14 @@ function Problem() {
                     <Button
                       className="flex items-center gap-2"
                       onClick={handleSubmit}
-                      disabled={solutionImages.length === 0 || isUploading}
+                      disabled={
+                        solutionImages.length === 0 ||
+                        isSubmitting ||
+                        answer === ""
+                      }
                     >
                       <Check className="h-4 w-4" />
-                      제출하기
+                      {isSubmitting ? "제출 중..." : "제출하기"}
                     </Button>
                   </div>
                 </div>
