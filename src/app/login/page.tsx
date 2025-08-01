@@ -23,12 +23,10 @@ export default function Login() {
 
     try {
       await login(email, password);
-
+      setIsLoading(false);
       router.push("/");
     } catch {
       return;
-    } finally {
-      setIsLoading(false);
     }
   };
 

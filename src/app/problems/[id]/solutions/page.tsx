@@ -1,6 +1,5 @@
 "use client";
 
-import { getProblemDetailAPI, ProblemDetailResponse } from "@/api/problemApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Table, {
@@ -16,45 +15,118 @@ import { getRelativeTime } from "@/utils/time";
 import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+
+//sample problem data
+const problemsData = [
+  {
+    id: 1,
+    year: "2024",
+    title: "9월 모의고사 미분과 적분 30번",
+    correctRate: 23.5,
+    tags: ["미적분학", "극한"],
+  },
+  {
+    id: 2,
+    year: "2024",
+    title: "6월 모의고사 확률과 통계 28번",
+    correctRate: 45.2,
+    tags: ["확률", "통계"],
+  },
+  {
+    id: 3,
+    year: "2023",
+    title: "수능 기하 29번",
+    correctRate: 18.7,
+    tags: ["기하학", "공간도형"],
+  },
+];
+// sample solution data
+const solutionsData = [
+  {
+    id: 1,
+    submissionNumber: "S001",
+    isCorrect: true,
+    submitter: "수학왕김철수",
+    submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2시간 전
+  },
+  {
+    id: 2,
+    submissionNumber: "S002",
+    isCorrect: false,
+    submitter: "미적분마스터",
+    submittedAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5시간 전
+  },
+  {
+    id: 3,
+    submissionNumber: "S003",
+    isCorrect: true,
+    submitter: "기하학전문가",
+    submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1일 전
+  },
+  {
+    id: 4,
+    submissionNumber: "S004",
+    isCorrect: true,
+    submitter: "확률통계고수",
+    submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3일 전
+  },
+  {
+    id: 5,
+    submissionNumber: "S005",
+    isCorrect: false,
+    submitter: "수학초보자",
+    submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1주일 전
+  },
+  {
+    id: 6,
+    submissionNumber: "S006",
+    isCorrect: true,
+    submitter: "적분의달인",
+    submittedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 2주일 전
+  },
+  {
+    id: 7,
+    submissionNumber: "S007",
+    isCorrect: true,
+    submitter: "미분방정식킬러",
+    submittedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1개월 전
+  },
+  {
+    id: 8,
+    submissionNumber: "S008",
+    isCorrect: false,
+    submitter: "수학학습자",
+    submittedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 2개월 전
+  },
+  {
+    id: 9,
+    submissionNumber: "S009",
+    isCorrect: true,
+    submitter: "극한의마법사",
+    submittedAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), // 6개월 전
+  },
+  {
+    id: 10,
+    submissionNumber: "S010",
+    isCorrect: true,
+    submitter: "수학올림피아드",
+    submittedAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1년 전
+  },
+];
 
 export default function SolutionPage() {
   const { id } = useParams();
   const router = useRouter();
   const problemId = Number.parseInt(id as string);
-  const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const getProblemDetail = async () => {
-      setIsLoading(true);
-      try {
-        const problemDetail = await getProblemDetailAPI(problemId);
-
-        if (!problemDetail) {
-          throw "error";
-        }
-
-        setProblem(problemDetail);
-      } catch {
-        alert("문제 불러오기에 실패하였습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getProblemDetail();
-  }, [problemId]);
-
-  if (isLoading || !problem) {
-    return (
-      <div className="min-h-screen flex justify-center items-center bg-gray-50">
-        <div className="text-gray-500 text-lg animate-pulse">
-          문제를 불러오는 중입니다...
-        </div>
-      </div>
-    );
-  }
+  const problem =
+    problemsData.find((p) => p.id === problemId) || problemsData[0];
+  const correctSolutions = solutionsData.filter((s) => s.isCorrect).length;
+  const totalSolutions = solutionsData.length;
+  const correctRate =
+    totalSolutions > 0
+      ? ((correctSolutions / totalSolutions) * 100).toFixed(1)
+      : 0;
 
   return (
     <div className="max-h-screen bg-gray-50 flex flex-col">
@@ -82,14 +154,14 @@ export default function SolutionPage() {
                     <span>.</span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        problem.accuracyRate < 30
+                        problem.correctRate < 30
                           ? "bg-red-100 text-red-800"
-                          : problem.accuracyRate < 60
+                          : problem.correctRate < 60
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      정답률 {problem.accuracyRate}%
+                      정답률 {problem.correctRate}%
                     </span>
                   </div>
                   <CardTitle className="text-2xl mb-2">
@@ -97,8 +169,8 @@ export default function SolutionPage() {
                   </CardTitle>
                   <div className="flex flex-wrap gap-1">
                     {problem.tags.map((tag) => (
-                      <Badge key={tag.name} variant="secondary">
-                        {tag.name}
+                      <Badge key={tag} variant="secondary">
+                        {tag}
                       </Badge>
                     ))}
                   </div>
@@ -112,7 +184,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-gray-900">
-                  {problem.submissionCount}
+                  {totalSolutions}
                 </div>
                 <div className="text-sm text-gray-600">총 제출 수</div>
               </CardContent>
@@ -120,7 +192,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-green-900">
-                  {problem.correctSubmissionCount}
+                  {correctSolutions}
                 </div>
                 <div className="text-sm text-gray-600">정답 제출</div>
               </CardContent>
@@ -128,7 +200,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-blue-900">
-                  {problem.accuracyRate}%
+                  {correctRate}%
                 </div>
                 <div className="text-sm text-gray-600">정답률</div>
               </CardContent>
@@ -153,21 +225,19 @@ export default function SolutionPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {problem.answers.map((solution) => (
+                  {solutionsData.map((solution) => (
                     <TableRow
                       key={solution.id}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() => {
-                        router.push(
-                          `/problems/${problemId}/solutions/${solution.id}`
-                        );
+                        router.push(`/problems/${problemId}/solutions/${solution.submissionNumber}`);
                       }}
                     >
                       <TableCell className="font-mono text-sm">
-                        {solution.id}
+                        {solution.submissionNumber}
                       </TableCell>
                       <TableCell className="text-center">
-                        {solution.answerStatus === "CORRECT" ? (
+                        {solution.isCorrect ? (
                           <div className="inline-flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
                             <Check className="h-4 w-4 text-green-600" />
                           </div>
@@ -179,11 +249,11 @@ export default function SolutionPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium text-gray-900">
-                          {solution.username}
+                          {solution.submitter}
                         </div>
                       </TableCell>
                       <TableCell className="text-right text-sm text-gray-500">
-                        {getRelativeTime(solution.submittedTime)}
+                        {getRelativeTime(solution.submittedAt)}
                       </TableCell>
                     </TableRow>
                   ))}

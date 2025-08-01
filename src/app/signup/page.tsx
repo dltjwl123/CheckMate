@@ -67,22 +67,6 @@ function Signup() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    // 공백 방지
-    if (/\s/.test(value)) return;
-
-    // 닉네임: 한글, 영어, 숫자, 특수문자(ASCII 33~126)
-    if (name === "nickname") {
-      const nicknameRegex = /^[\uAC00-\uD7A3a-zA-Z0-9!-/:-@[-`{-~]*$/;
-      if (!nicknameRegex.test(value) && value !== "") return;
-    }
-
-    // 비밀번호 & 비밀번호 확인: 특수문자 포함 허용 → ASCII printable 문자
-    if (name === "password" || name === "confirmPassword") {
-      const passwordRegex = /^[!-~]*$/; // ASCII printable 문자 (32 제외)
-      if (!passwordRegex.test(value) && value !== "") return;
-    }
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -228,7 +212,6 @@ function Signup() {
 
     try {
       await signUpAPI(formData.email, formData.password, formData.nickname);
-      alert("회원가입에 성공하였습니다.");
       router.push("/login");
     } catch {
       setErrors((prev) => ({

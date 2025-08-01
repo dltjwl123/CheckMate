@@ -11,9 +11,13 @@ export interface UserProfile {
   profileImageUrl: string;
 }
 
-export const getUserDataAPI = async () => {
+export const getUserDataAPI = async (userId: number) => {
   try {
-    const res = await axiosInstance.get(`user/my-page/user-data`);
+    const res = await axiosInstance.get(`user/my-page/user-data`, {
+      params: {
+        userId,
+      },
+    });
     const userProfile: UserProfile = res.data;
 
     return userProfile;
