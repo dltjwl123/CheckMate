@@ -46,7 +46,7 @@ function Main() {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchedProblems, setSearchedProblems] = useState<Problem[]>([]);
 
-  const handleSearch = async (page: number = 1) => {
+  const handleSearch = async (page: number = 0) => {
     setIsSearching(true);
 
     const searchResquest: problemFilterRequest = {
@@ -95,7 +95,7 @@ function Main() {
   };
 
   const handlePageChange = (page: number) => {
-    handleSearch(page);
+    handleSearch(page - 1);
   };
 
   const Pagination = () => {
@@ -173,7 +173,7 @@ function Main() {
             <Button
               variant="outline"
               onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || isSearching}
+              disabled={currentPage + 1 === 1 || isSearching}
               className="relative inline-flex items-center px-2 py-2 rounded-l-md border
                 border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
             >
@@ -182,12 +182,12 @@ function Main() {
             {pageNumbers.map((page: number) => (
               <Button
                 key={page}
-                variant={currentPage === page ? "default" : "outline"}
+                variant={currentPage + 1 === page ? "default" : "outline"}
                 onClick={() => handlePageChange(page)}
                 disabled={isSearching}
                 className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
                   ${
-                    currentPage === page
+                    currentPage + 1 === page
                       ? "z-10 bg-blue-600 border-blue-600 text-white"
                       : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                   }`}
@@ -198,7 +198,7 @@ function Main() {
             <Button
               variant="outline"
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || isSearching}
+              disabled={currentPage + 1 === totalPages || isSearching}
               className="relative inline-flex items-center px-2 py-2 rounded-l-md border
                 border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
             >
@@ -211,7 +211,7 @@ function Main() {
   };
 
   useEffect(() => {
-    handleSearch(1);
+    handleSearch(0);
   }, []);
 
   return (
@@ -380,7 +380,7 @@ function Main() {
                 {/* Search Button */}
                 <div className="col-span-full flex gap-3">
                   <Button
-                    onClick={() => handleSearch(1)}
+                    onClick={() => handleSearch(0)}
                     disabled={isSearching}
                     className="px-6 py-2 h-10"
                   >

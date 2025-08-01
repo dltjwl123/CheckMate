@@ -10,64 +10,6 @@ import Button from "@/components/ui/button";
 import Image from "next/image";
 import { getProblemDetailAPI, ProblemDetailResponse } from "@/api/problemApi";
 
-const problemsData = [
-  {
-    id: 1,
-    year: "2024",
-    title: "9월 모의고사 미분과 적분 30번",
-    correctRate: 23.5,
-    solved: true,
-    tags: ["미적분학", "극한"],
-    difficulty: "고급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 2,
-    year: "2024",
-    title: "6월 모의고사 확률과 통계 28번",
-    correctRate: 45.2,
-    solved: false,
-    tags: ["확률", "통계"],
-    difficulty: "중급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 3,
-    year: "2023",
-    title: "수능 기하 29번",
-    correctRate: 18.7,
-    solved: true,
-    tags: ["기하학", "공간도형"],
-    difficulty: "고급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 4,
-    year: "2024",
-    title: "3월 모의고사 수학II 27번",
-    correctRate: 67.3,
-    solved: false,
-    tags: ["함수", "그래프"],
-    difficulty: "중급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 5,
-    year: "2023",
-    title: "수능 수학I 26번",
-    correctRate: 52.8,
-    solved: true,
-    tags: ["삼각함수", "방정식"],
-    difficulty: "중급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-];
-
 function Problem() {
   const { id } = useParams();
   const problemId = Number.parseInt(id as string);
@@ -277,7 +219,7 @@ function Problem() {
                     <div className="flex justify-center p-4">
                       <Image
                         src={
-                          activeImageIndex
+                          solutionImages[activeImageIndex]
                             ? solutionImages[activeImageIndex]
                             : "dummyPlaceholder.svg"
                         }
