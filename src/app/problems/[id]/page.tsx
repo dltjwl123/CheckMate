@@ -87,23 +87,18 @@ function Problem() {
 
     const newImages: string[] = [];
     let filesProcessed = 0;
-    const wasEmptyBeforeUpload = solutionImages.length === 0;
 
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
+
       reader.onloadend = (event) => {
         newImages.push(event.target?.result as string);
         filesProcessed++;
-
         if (filesProcessed === files.length) {
           setSolutionImages((prev) => [...prev, ...newImages]);
           setActiveImageIndex(solutionImages.length + newImages.length - 1);
           e.target.value = "";
           setIsUploading(false);
-
-          if (wasEmptyBeforeUpload) {
-            alert("풀이 이미지가 업로드되었습니다.");
-          }
         }
       };
       reader.readAsDataURL(file);
@@ -275,7 +270,11 @@ function Problem() {
                         <Button
                           variant="outline"
                           className="flex items-center gap-2 bg-transparent"
-                          onClick={() => setSolutionImages([])}
+                          onClick={() => {
+                            setSolutionImages([]);
+                            setActiveImageIndex(0);
+                            document.getElementById("re-upload-file")?.click();
+                          }}
                         >
                           <Upload className="h-4 w-4" />
                           다시 업로드
@@ -299,6 +298,9 @@ function Problem() {
                         <Button
                           variant="outline"
                           className="flex items-center gap-2 bg-transparent"
+                          onClick={() =>
+                            document.getElementById("add-upload-file")?.click()
+                          }
                           disabled={isUploading}
                         >
                           <Plus className="h-4 w-4" />
@@ -336,14 +338,20 @@ function Problem() {
                         풀이 이미지 업로드
                       </p>
                       <label htmlFor="file-upload" className="cursor-pointer">
-                        <Button disabled={isUploading}>
+                        <Button
+                          disabled={isUploading}
+                          onClick={() =>
+                            document.getElementById("file-upload")?.click()
+                          }
+                        >
                           {isUploading ? "업로드 중..." : "이미지 선택"}
                         </Button>
                         <input
                           id="file-upload"
-                          name="fiule-uplaod"
+                          name="file-upload"
                           type="file"
                           accept="image/*"
+                          multiple
                           className="sr-only"
                           onChange={handleImageUpload}
                           disabled={isUploading}
