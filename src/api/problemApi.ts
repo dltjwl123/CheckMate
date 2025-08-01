@@ -65,7 +65,7 @@ export interface AnswerDetailResponse {
   submittedAt: Date;
   answerImgSolutions: string[];
   aiReview: AiReview | null;
-  userReviews: any[];
+  userReviews: string[];
   officialSolution: string;
 }
 
@@ -156,7 +156,7 @@ export const submitUserSolution = async (
   reqBody: submitUserSolutionRequest
 ) => {
   try {
-    const res = await axiosInstance.post(`answers/submit-test-list`, reqBody);
+    await axiosInstance.post(`answers/submit-test-list`, reqBody);
   } catch (error) {
     apiErrorHandler(error);
   }

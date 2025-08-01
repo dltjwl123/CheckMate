@@ -6,7 +6,6 @@ import {
   getSolutionDetailAPI,
   ProblemDetailResponse,
 } from "@/api/problemApi";
-import { ReviewDetailResponse } from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
@@ -26,275 +25,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// 샘플 문제 데이터
-const problemsData = [
-  {
-    id: 1,
-    year: "2024",
-    title: "9월 모의고사 미분과 적분 30번",
-    correctRate: 23.5,
-    tags: ["미적분학", "극한"],
-  },
-  {
-    id: 2,
-    year: "2024",
-    title: "6월 모의고사 확률과 통계 28번",
-    correctRate: 45.2,
-    tags: ["확률", "통계"],
-  },
-  {
-    id: 3,
-    year: "2023",
-    title: "수능 기하 29번",
-    correctRate: 18.7,
-    tags: ["기하학", "공간도형"],
-  },
-];
-
-// 샘플 풀이 데이터 (imageUrls를 배열로 변경, reviews 추가)
-const solutionsData = [
-  {
-    id: "S001",
-    problemId: 1,
-    submitter: "수학왕김철수",
-    isCorrect: true,
-    submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    imageUrls: [
-      "/placeholder.svg?height=800&width=600&text=Solution+Page+1",
-      "/placeholder.svg?height=800&width=600&text=Solution+Page+2",
-      "/placeholder.svg?height=800&width=600&text=Solution+Page+3",
-    ],
-    aiGrading: {
-      score: 95,
-      feedback: `이 풀이는 매우 우수합니다. 주요 평가 내용은 다음과 같습니다:
-
-**정답 여부**: ✅ 정답
-
-**풀이 과정 분석**:
-1. **함수의 연속성 확인** (25/25점)
-   - $\\lim_{x \\to 2^-} f(x) = \\lim_{x \\to 2^+} f(x) = f(2)$ 조건을 올바르게 적용
-   - 좌극한과 우극한을 정확히 계산
-
-2. **미분가능성 조건** (25/25점)  
-   - $\\lim_{h \\to 0^-} \\frac{f(2+h) - f(2)}{h} = \\lim_{h \\to 0^+} \\frac{f(2+h) - f(2)}{h}$ 조건 활용
-   - 좌미분계수와 우미분계수가 같음을 확인
-
-3. **연립방정식 해결** (20/25점)
-   - $a$와 $b$의 값을 구하는 과정이 체계적
-   - 계산 실수 없이 정확한 답 도출
-
-4. **최종 답안** (25/25점)
-   - $a = 4, b = -4$ 정답
-   - $a + b = 0$ 최종 답안 정확
-
-**개선점**:
-- 중간 계산 과정에서 더 자세한 설명이 있으면 좋겠습니다
-- 그래프를 그려서 시각적으로 설명하면 더욱 완벽할 것 같습니다
-
-**총평**: 미분과 적분의 기본 개념을 정확히 이해하고 있으며, 체계적인 접근 방식이 돋보입니다.`,
-    },
-    officialSolution: {
-      available: true,
-      content: `**공식 풀이**
-
-이 문제는 함수의 연속성과 미분가능성을 동시에 만족하는 조건을 찾는 문제입니다.
-
-**1단계: 연속성 조건**
-
-$x = 2$에서 연속이려면:
-$$\\lim_{x \\to 2^-} f(x) = \\lim_{x \\to 2^+} f(x) = f(2)$$
-
-좌극한: $\\lim_{x \\to 2^-} f(x) = \\lim_{x \\to 2^-} (ax + b) = 2a + b$
-
-우극한: $\\lim_{x \\to 2^+} f(x) = \\lim_{x \\to 2^+} x^2 = 4$
-
-함수값: $f(2) = 2^2 = 4$
-
-따라서: $2a + b = 4$ ... ①
-
-**2단계: 미분가능성 조건**
-
-$x = 2$에서 미분가능하려면:
-$$\\lim_{h \\to 0^-} \\frac{f(2+h) - f(2)}{h} = \\lim_{h \\to 0^+} \\frac{f(2+h) - f(2)}{h}$$
-
-좌미분계수: $\\lim_{h \\to 0^-} \\frac{a(2+h) + b - 4}{h} = \\lim_{h \\to 0^-} \\frac{2a + ah + b - 4}{h} = a$
-
-우미분계수: $\\lim_{h \\to 0^+} \\frac{(2+h)^2 - 4}{h} = \\lim_{h \\to 0^+} \\frac{4 + 4h + h^2 - 4}{h} = 4$
-
-따라서: $a = 4$ ... ②
-
-**3단계: 연립방정식 해결**
-
-①, ②에서:
-- $a = 4$
-- $2(4) + b = 4$
-- $8 + b = 4$
-- $b = -4$
-
-**최종 답안**: $a + b = 4 + (-4) = 0$`,
-    },
-    reviews: [
-      {
-        reviewer: "리뷰어1",
-        submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1일 전
-        pages: [
-          {
-            backgroundImageUrl:
-              "/placeholder.svg?height=800&width=600&text=Solution+Page+1",
-            drawingData:
-              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0EAwImjAAH9PVGYQb/sAAAAASUVORK5CYII=", // A tiny red dot base64 image for demo
-            textBoxes: [
-              {
-                id: "text1",
-                x: 50,
-                y: 100,
-                width: 200,
-                height: 50,
-                content: "여기에 중요한 개념이 있습니다!",
-              },
-              {
-                id: "text2",
-                x: 150,
-                y: 250,
-                width: 180,
-                height: 40,
-                content: "이 부분은 다시 확인해 보세요.",
-              },
-            ],
-          },
-          {
-            backgroundImageUrl:
-              "/placeholder.svg?height=800&width=600&text=Solution+Page+2",
-            drawingData: "",
-            textBoxes: [
-              {
-                id: "text3",
-                x: 80,
-                y: 120,
-                width: 150,
-                height: 30,
-                content: "잘 풀었습니다!",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        reviewer: "리뷰어2",
-        submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3일 전
-        pages: [
-          {
-            backgroundImageUrl:
-              "/placeholder.svg?height=800&width=600&text=Solution+Page+1",
-            drawingData: "",
-            textBoxes: [
-              {
-                id: "text4",
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 30,
-                content: "깔끔한 풀이네요.",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "S002",
-    problemId: 1,
-    submitter: "미적분마스터",
-    isCorrect: false,
-    submittedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    imageUrls: ["/placeholder.svg?height=800&width=600&text=Page+1+Error"],
-    aiGrading: {
-      score: 65,
-      feedback: `이 풀이에는 몇 가지 오류가 있습니다.
-
-**정답 여부**: ❌ 오답
-
-**풀이 과정 분석**:
-1. **함수의 연속성 확인** (20/25점)
-   - 연속성 조건은 올바르게 설정했습니다
-   - $2a + b = 4$ 식을 정확히 도출
-
-2. **미분가능성 조건** (15/25점)  
-   - 미분가능성의 개념은 이해하고 있으나 계산에 오류
-   - 좌미분계수 계산에서 실수 발생
-   - $\\lim_{h \\to 0^-} \\frac{f(2+h) - f(2)}{h}$를 잘못 계산
-
-3. **연립방정식 해결** (15/25점)
-   - 잘못된 미분계수로 인해 연립방정식이 틀림
-   - $a = 2$로 잘못 계산 (정답: $a = 4$)
-
-4. **최종 답안** (15/25점)
-   - $a = 2, b = 0$으로 계산
-   - $a + b = 2$ (정답: $0$)
-
-**주요 오류**:
-- 미분의 정의를 적용할 때 극한 계산 실수
-- $(2+h)^2$을 전개할 때 계산 오류
-
-**개선 방향**:
-- 미분의 정의를 다시 복습하세요
-- 극한 계산을 더 신중하게 진행하세요
-- 중간 검산을 통해 오류를 줄이세요`,
-    },
-    officialSolution: {
-      available: true,
-      content: `**공식 풀이**
-
-이 문제는 함수의 연속성과 미분가능성을 동시에 만족하는 조건을 찾는 문제입니다.
-
-**1단계: 연속성 조건**
-
-$x = 2$에서 연속이려면:
-$$\\lim_{x \\to 2^-} f(x) = \\lim_{x \\to 2^+} f(x) = f(2)$$
-
-좌극한: $\\lim_{x \\to 2^-} f(x) = \\lim_{x \\to 2^-} (ax + b) = 2a + b$
-
-우극한: $\\lim_{x \\to 2^+} f(x) = \\lim_{x \\to 2^+} x^2 = 4$
-
-함수값: $f(2) = 2^2 = 4$
-
-따라서: $2a + b = 4$ ... ①
-
-**2단계: 미분가능성 조건**
-
-$x = 2$에서 미분가능하려면:
-$$\\lim_{h \\to 0^-} \\frac{f(2+h) - f(2)}{h} = \\lim_{h \\to 0^+} \\frac{f(2+h) - f(2)}{h}$$
-
-좌미분계수: $\\lim_{h \\to 0^-} \\frac{a(2+h) + b - 4}{h} = \\lim_{h \\to 0^-} \\frac{2a + ah + b - 4}{h} = a$
-
-우미분계수: $\\lim_{h \\to 0^+} \\frac{(2+h)^2 - 4}{h} = \\lim_{h \\to 0^+} \\frac{4 + 4h + h^2 - 4}{h} = 4$
-
-따라서: $a = 4$ ... ②
-
-**3단계: 연립방정식 해결**
-
-①, ②에서:
-- $a = 4$
-- $2(4) + b = 4$
-- $8 + b = 4$
-- $b = -4$
-
-**최종 답안**: $a + b = 4 + (-4) = 0$`,
-    },
-    reviews: [], // 리뷰가 없는 경우
-  },
-];
-
 export default function SolutionsDetailPage() {
-  const { id, solutionId } = useParams();
+  const { id } = useParams();
   const problemId = Number.parseInt(id as string);
-  const solutuionIdStr = solutionId as string;
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [solution, setSolution] = useState<AnswerDetailResponse | null>(null);
   const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
-
+setSolution(null); //tmp
   const [activeTab, setActiveTab] = useState<
     "submitted" | "aiGrading" | "official" | "review"
   >("submitted");
@@ -322,7 +60,7 @@ export default function SolutionsDetailPage() {
     };
 
     getProblemDetail();
-  }, [id]);
+  }, [problemId]);
 
   useEffect(() => {
     const getSolutionDetail = async () => {

@@ -10,7 +10,7 @@ import Table, {
 } from "@/components/table";
 import Badge from "@/components/ui/badge";
 import Footer from "@/components/footer";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getProblemListAPI,
   Problem,
@@ -46,43 +46,47 @@ function Main() {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchedProblems, setSearchedProblems] = useState<Problem[]>([]);
 
-  const handleSearch = async (page: number = 0) => {
-    setIsSearching(true);
+  const handleSearch = useCallback(
+    () =>
+      async (page: number = 0) => {
+        setIsSearching(true);
 
-    const searchResquest: problemFilterRequest = {
-      ...(filters.title !== null && { title: filters.title }),
-      ...(filters.year !== null && { year: filters.year }),
-      ...(filters.correctRateMax !== null && {
-        maxAccuracyRate: filters.correctRateMax,
-      }),
-      ...(filters.correctRateMin !== null && {
-        minAccuracyRate: filters.correctRateMin,
-      }),
-      ...(filters.tag !== null && { tagName: filters.tag }),
-    };
+        const searchResquest: problemFilterRequest = {
+          ...(filters.title !== null && { title: filters.title }),
+          ...(filters.year !== null && { year: filters.year }),
+          ...(filters.correctRateMax !== null && {
+            maxAccuracyRate: filters.correctRateMax,
+          }),
+          ...(filters.correctRateMin !== null && {
+            minAccuracyRate: filters.correctRateMin,
+          }),
+          ...(filters.tag !== null && { tagName: filters.tag }),
+        };
 
-    try {
-      const filteredList = await getProblemListAPI(
-        page,
-        ITEMS_PER_PAGE,
-        undefined,
-        searchResquest
-      );
+        try {
+          const filteredList = await getProblemListAPI(
+            page,
+            ITEMS_PER_PAGE,
+            undefined,
+            searchResquest
+          );
 
-      if (filteredList) {
-        setSearchedProblems(filteredList.content);
-        setTotalItems(filteredList.size);
-        setTotalPages(filteredList.pageable.pageSize);
-        setCurrentPage(filteredList.pageable.pageNumber);
-      } else {
-        throw "검색 실패";
-      }
-    } catch {
-      alert("검색에 실패하였습니다");
-    } finally {
-      setIsSearching(false);
-    }
-  };
+          if (filteredList) {
+            setSearchedProblems(filteredList.content);
+            setTotalItems(filteredList.size);
+            setTotalPages(filteredList.pageable.pageSize);
+            setCurrentPage(filteredList.pageable.pageNumber);
+          } else {
+            throw "검색 실패";
+          }
+        } catch {
+          alert("검색에 실패하였습니다");
+        } finally {
+          setIsSearching(false);
+        }
+      },
+    [filters]
+  );
 
   const resetFilter = () => {
     setFilters({
@@ -212,7 +216,7 @@ function Main() {
 
   useEffect(() => {
     handleSearch(0);
-  }, []);
+  }, [handleSearch]);
 
   return (
     <div className="min-h-screen bg-white">

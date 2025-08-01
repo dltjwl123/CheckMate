@@ -18,104 +18,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-//sample problem data
-const problemsData = [
-  {
-    id: 1,
-    year: "2024",
-    title: "9월 모의고사 미분과 적분 30번",
-    correctRate: 23.5,
-    tags: ["미적분학", "극한"],
-  },
-  {
-    id: 2,
-    year: "2024",
-    title: "6월 모의고사 확률과 통계 28번",
-    correctRate: 45.2,
-    tags: ["확률", "통계"],
-  },
-  {
-    id: 3,
-    year: "2023",
-    title: "수능 기하 29번",
-    correctRate: 18.7,
-    tags: ["기하학", "공간도형"],
-  },
-];
-// sample solution data
-const solutionsData = [
-  {
-    id: 1,
-    submissionNumber: "S001",
-    isCorrect: true,
-    submitter: "수학왕김철수",
-    submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2시간 전
-  },
-  {
-    id: 2,
-    submissionNumber: "S002",
-    isCorrect: false,
-    submitter: "미적분마스터",
-    submittedAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5시간 전
-  },
-  {
-    id: 3,
-    submissionNumber: "S003",
-    isCorrect: true,
-    submitter: "기하학전문가",
-    submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1일 전
-  },
-  {
-    id: 4,
-    submissionNumber: "S004",
-    isCorrect: true,
-    submitter: "확률통계고수",
-    submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3일 전
-  },
-  {
-    id: 5,
-    submissionNumber: "S005",
-    isCorrect: false,
-    submitter: "수학초보자",
-    submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1주일 전
-  },
-  {
-    id: 6,
-    submissionNumber: "S006",
-    isCorrect: true,
-    submitter: "적분의달인",
-    submittedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 2주일 전
-  },
-  {
-    id: 7,
-    submissionNumber: "S007",
-    isCorrect: true,
-    submitter: "미분방정식킬러",
-    submittedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1개월 전
-  },
-  {
-    id: 8,
-    submissionNumber: "S008",
-    isCorrect: false,
-    submitter: "수학학습자",
-    submittedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 2개월 전
-  },
-  {
-    id: 9,
-    submissionNumber: "S009",
-    isCorrect: true,
-    submitter: "극한의마법사",
-    submittedAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), // 6개월 전
-  },
-  {
-    id: 10,
-    submissionNumber: "S010",
-    isCorrect: true,
-    submitter: "수학올림피아드",
-    submittedAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1년 전
-  },
-];
-
 export default function SolutionPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -142,7 +44,7 @@ export default function SolutionPage() {
     };
 
     getProblemDetail();
-  }, [id]);
+  }, [problemId]);
 
   if (isLoading || !problem) {
     return (

@@ -48,7 +48,7 @@ function Problem() {
     };
 
     getProblemDetail();
-  }, [id]);
+  }, [problemId]);
 
   //fetch last solution data
   useEffect(() => {
