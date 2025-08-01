@@ -16,9 +16,9 @@ export default function MyPage() {
     useAuth();
   const router = useRouter();
 
-  const [nickname, setNickname] = useState<string>(user?.nickname || "");
+  const [nickname, setNickname] = useState<string>(user?.username || "");
   const [profileImage, setProfileImage] = useState<string>(
-    user?.profileImage || "/placeholder.svg?height=40&width=40"
+    user?.profileImageUrl || "/placeholder.svg?height=40&width=40"
   );
   const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -35,9 +35,9 @@ export default function MyPage() {
 
   useEffect(() => {
     if (user) {
-      setNickname(user.nickname);
+      setNickname(user.username);
       setProfileImage(
-        user.profileImage || "/placeholder.svg?height=40&width=40"
+        user.profileImageUrl || "/placeholder.svg?height=40&width=40"
       );
     } else {
       router.replace("/login");
@@ -86,7 +86,6 @@ export default function MyPage() {
 
     setIsChangingPassword(true);
     try {
-      
     } catch {
       alert("비밀번호 변경에 실패하였습니다.");
     }
