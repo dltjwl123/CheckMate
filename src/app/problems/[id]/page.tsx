@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
@@ -8,75 +8,78 @@ import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Image from "next/image";
-
-const problemsData = [
-  {
-    id: 1,
-    year: "2024",
-    title: "9월 모의고사 미분과 적분 30번",
-    correctRate: 23.5,
-    solved: true,
-    tags: ["미적분학", "극한"],
-    difficulty: "고급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 2,
-    year: "2024",
-    title: "6월 모의고사 확률과 통계 28번",
-    correctRate: 45.2,
-    solved: false,
-    tags: ["확률", "통계"],
-    difficulty: "중급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 3,
-    year: "2023",
-    title: "수능 기하 29번",
-    correctRate: 18.7,
-    solved: true,
-    tags: ["기하학", "공간도형"],
-    difficulty: "고급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 4,
-    year: "2024",
-    title: "3월 모의고사 수학II 27번",
-    correctRate: 67.3,
-    solved: false,
-    tags: ["함수", "그래프"],
-    difficulty: "중급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-  {
-    id: 5,
-    year: "2023",
-    title: "수능 수학I 26번",
-    correctRate: 52.8,
-    solved: true,
-    tags: ["삼각함수", "방정식"],
-    difficulty: "중급",
-    imageUrl: "/placeholder.svg?height=600&width=800",
-    solutionImages: ["/placeholder.svg?height=400&width=600"],
-  },
-];
+import {
+  getProblemDetailAPI,
+  getSolutionDetailAPI,
+  ProblemDetailResponse,
+  submitUserSolution,
+} from "@/api/problemApi";
+import { useAuth } from "@/context/auth-context";
 
 function Problem() {
   const { id } = useParams();
+  const { isLoggedIn } = useAuth();
   const problemId = Number.parseInt(id as string);
-  const problem =
-    problemsData.find((p) => p.id === problemId) || problemsData[0];
-  const [solutionImages, setSolutionImages] = useState<string[]>(
-    problem.solutionImages
-  );
+  const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
+  const [solutionImages, setSolutionImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [answer, setAnswer] = useState<string>("");
+
+  useEffect(() => {
+    const getProblemDetail = async () => {
+      setIsLoading(true);
+      try {
+        const problemDetail = await getProblemDetailAPI(problemId);
+
+        if (!problemDetail) {
+          throw "error";
+        }
+
+        setProblem(problemDetail);
+      } catch {
+        alert("문제 불러오기에 실패하였습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getProblemDetail();
+  }, [problemId]);
+
+  //fetch last solution data
+  useEffect(() => {
+    const fetchLastSolution = async () => {
+      if (!problem) {
+        return;
+      }
+      const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
+
+      if (!lastSolutionId) {
+        return;
+      }
+
+      setIsSolutionLoading(true);
+      try {
+        const data = await getSolutionDetailAPI(lastSolutionId);
+
+        if (!data) {
+          throw "error";
+        }
+
+        setSolutionImages(data.answerImgSolutions);
+      } catch {
+        alert("내 풀이 불러오기에 실패하였습니다");
+      } finally {
+        setIsSolutionLoading(false);
+      }
+    };
+
+    fetchLastSolution();
+  }, [problem]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -89,32 +92,60 @@ function Problem() {
 
     const newImages: string[] = [];
     let filesProcessed = 0;
-    const wasEmptyBeforeUpload = solutionImages.length === 0;
 
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
+
       reader.onloadend = (event) => {
         newImages.push(event.target?.result as string);
         filesProcessed++;
-
         if (filesProcessed === files.length) {
           setSolutionImages((prev) => [...prev, ...newImages]);
           setActiveImageIndex(solutionImages.length + newImages.length - 1);
           e.target.value = "";
           setIsUploading(false);
-
-          if (wasEmptyBeforeUpload) {
-            alert("풀이 이미지가 업로드되었습니다.");
-          }
         }
       };
       reader.readAsDataURL(file);
     });
   };
 
-  const handleSubmit = () => {
-    alert("풀이 제출이 완료되었습니다.");
+  const handleChangingAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (value.length > 3) {
+      return;
+    }
+
+    if (/^[1-9]\d*$/.test(value) || value === "") {
+      setAnswer(value);
+    }
   };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await submitUserSolution({
+        answer: Number(answer),
+        answerImgUrls: solutionImages,
+        problemId,
+      });
+    } catch {
+      alert("풀이 제출에 실패하였습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading || !problem || isSolutionLoading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gray-50">
+        <div className="text-gray-500 text-lg animate-pulse">
+          문제를 불러오는 중입니다...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -145,18 +176,18 @@ function Problem() {
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <span>{problem.year}</span>
+                    <span>{problem!.year}</span>
                     <span>.</span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        problem.correctRate < 30
+                        problem.accuracyRate < 30
                           ? "bg-red-100 text-red-800"
-                          : problem.correctRate < 60
+                          : problem.accuracyRate < 60
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      정답률 {problem.correctRate}%
+                      정답률 {problem.accuracyRate}%
                     </span>
                     <span>.</span>
                     {problem.solved ? (
@@ -173,8 +204,8 @@ function Problem() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {problem.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
+                    <Badge key={tag.name} variant="secondary">
+                      {tag.name}
                     </Badge>
                   ))}
                 </div>
@@ -187,7 +218,7 @@ function Problem() {
                 </div>
                 <div className="flex justify-center p-4">
                   <Image
-                    src={problem.imageUrl || "/dummyPlaceholder.svg"}
+                    src={problem.problemImageUrl || "/dummyPlaceholder.svg"}
                     alt={`${problem.title} 문제 이미지`}
                     width={800}
                     height={600}
@@ -204,7 +235,18 @@ function Problem() {
               <CardTitle className="text-xl">내 풀이</CardTitle>
             </CardHeader>
             <CardContent>
-              {solutionImages ? (
+              {!isLoggedIn ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600 mb-4">
+                    이 기능은 로그인 후 사용할 수 있습니다.
+                  </p>
+                  <Link href="/login">
+                    <Button variant="outline" className="mx-auto">
+                      로그인 하러가기
+                    </Button>
+                  </Link>
+                </div>
+              ) : solutionImages.length !== 0 ? (
                 <div className="space-y-6">
                   {/* preview */}
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
@@ -246,7 +288,7 @@ function Problem() {
                     <div className="flex justify-center p-4">
                       <Image
                         src={
-                          activeImageIndex
+                          solutionImages[activeImageIndex]
                             ? solutionImages[activeImageIndex]
                             : "dummyPlaceholder.svg"
                         }
@@ -258,6 +300,24 @@ function Problem() {
                     </div>
                   </div>
 
+                  <div className="mb-4">
+                    <label
+                      htmlFor="answer"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      정답 입력
+                    </label>
+                    <input
+                      id="answer"
+                      name="answer"
+                      type="text"
+                      placeholder="정답을 입력하세요(양의 정수)"
+                      value={answer}
+                      onChange={handleChangingAnswer}
+                      className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+
                   <div className="flex justify-between items-center">
                     <div className="flex gap-4">
                       <label
@@ -267,7 +327,10 @@ function Problem() {
                         <Button
                           variant="outline"
                           className="flex items-center gap-2 bg-transparent"
-                          onClick={() => setSolutionImages([])}
+                          onClick={() => {
+                            setSolutionImages([]);
+                            setActiveImageIndex(0);
+                          }}
                         >
                           <Upload className="h-4 w-4" />
                           다시 업로드
@@ -291,6 +354,9 @@ function Problem() {
                         <Button
                           variant="outline"
                           className="flex items-center gap-2 bg-transparent"
+                          onClick={() =>
+                            document.getElementById("add-upload-file")?.click()
+                          }
                           disabled={isUploading}
                         >
                           <Plus className="h-4 w-4" />
@@ -311,10 +377,14 @@ function Problem() {
                     <Button
                       className="flex items-center gap-2"
                       onClick={handleSubmit}
-                      disabled={solutionImages.length === 0 || isUploading}
+                      disabled={
+                        solutionImages.length === 0 ||
+                        isSubmitting ||
+                        answer === ""
+                      }
                     >
                       <Check className="h-4 w-4" />
-                      제출하기
+                      {isSubmitting ? "제출 중..." : "제출하기"}
                     </Button>
                   </div>
                 </div>
@@ -328,14 +398,20 @@ function Problem() {
                         풀이 이미지 업로드
                       </p>
                       <label htmlFor="file-upload" className="cursor-pointer">
-                        <Button disabled={isUploading}>
+                        <Button
+                          disabled={isUploading}
+                          onClick={() =>
+                            document.getElementById("file-upload")?.click()
+                          }
+                        >
                           {isUploading ? "업로드 중..." : "이미지 선택"}
                         </Button>
                         <input
                           id="file-upload"
-                          name="fiule-uplaod"
+                          name="file-upload"
                           type="file"
                           accept="image/*"
+                          multiple
                           className="sr-only"
                           onChange={handleImageUpload}
                           disabled={isUploading}
