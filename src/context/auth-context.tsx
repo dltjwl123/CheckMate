@@ -2,28 +2,17 @@
 
 import { deleteUserAPI, loginAPI, logoutAPI } from "@/api/authApi";
 import {
+  getUserDataAPI,
   updateUserPasswordAPI,
   updateUserProfileAPI,
   UpdateUserProfileRequest,
+  UserProfile,
 } from "@/api/userApi";
 import { useRouter } from "next/navigation";
-import React, {
-  useState,
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-} from "react";
-
-interface User {
-  id: number;
-  email: string;
-  nickname: string;
-  profileImage?: string;
-}
+import React, { useState, createContext, useCallback, useContext } from "react";
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -41,32 +30,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const dummyUser: User = useMemo(
-    () => ({
-      id: 0,
-      email: "test@example.com",
-      nickname: "청운종",
-      profileImage: "/placeholder.svg?height=40&width=40",
-    }),
-    []
-  );
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const router = useRouter();
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      try {
-        await loginAPI(email, password);
-        setUser(dummyUser);
-        setIsLoggedIn(true);
-      } catch (error) {
-        alert("로그인에 실패하였습니다.");
-        throw error;
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      await loginAPI(email, password);
+
+      const userData = await getUserDataAPI();
+      if (!userData) {
+        throw "error";
       }
-    },
-    [dummyUser]
-  );
+      setUser(userData);
+      setIsLoggedIn(true);
+    } catch (error) {
+      alert("로그인에 실패하였습니다.");
+      throw error;
+    }
+  }, []);
 
   const logout = useCallback(async () => {
     await logoutAPI();
@@ -76,13 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const updateProfile = useCallback(
-    async (newNickname?: string, newProfileImage?: string) => {
+    async (newUserName?: string, newProfileImage?: string) => {
       if (!user) {
         return;
       }
       const updateUserData: UpdateUserProfileRequest = {
         userId: user.id,
-        userName: newNickname,
+        userName: newUserName,
         profileImgUrl: newProfileImage,
       };
 
@@ -92,8 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!prevUser) return null;
           return {
             ...prevUser,
-            nickname: newNickname || prevUser.nickname,
-            profileImage: newProfileImage || prevUser.profileImage,
+            ...(newUserName !== undefined && { username: newUserName }),
+            ...(newProfileImage !== undefined && {
+              profileImageUrl: newProfileImage,
+            }),
           };
         });
         alert("프로필이 업데이트되었습니다.");
