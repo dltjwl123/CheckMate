@@ -32,7 +32,7 @@ export default function SolutionPage() {
         const problemDetail = await getProblemDetailAPI(problemId);
 
         if (!problemDetail) {
-          throw "error";
+          throw new Error("problem API error");
         }
 
         setProblem(problemDetail);
@@ -153,21 +153,21 @@ export default function SolutionPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {problem.answers.map((solution) => (
+                  {problem.answers.map((answer) => (
                     <TableRow
-                      key={solution.id}
+                      key={answer.id}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() => {
                         router.push(
-                          `/problems/${problemId}/solutions/${solution.id}`
+                          `/problems/${problemId}/solutions/${answer.id}`
                         );
                       }}
                     >
                       <TableCell className="font-mono text-sm">
-                        {solution.id}
+                        {answer.id}
                       </TableCell>
                       <TableCell className="text-center">
-                        {solution.answerStatus === "CORRECT" ? (
+                        {answer.answerStatus === "CORRECT" ? (
                           <div className="inline-flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
                             <Check className="h-4 w-4 text-green-600" />
                           </div>
@@ -179,11 +179,11 @@ export default function SolutionPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium text-gray-900">
-                          {solution.username}
+                          {answer.username}
                         </div>
                       </TableCell>
                       <TableCell className="text-right text-sm text-gray-500">
-                        {getRelativeTime(solution.submittedTime)}
+                        {answer.submittedTime ? getRelativeTime(answer.submittedTime) : "불명"}
                       </TableCell>
                     </TableRow>
                   ))}
