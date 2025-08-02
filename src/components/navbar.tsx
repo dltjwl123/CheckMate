@@ -44,18 +44,19 @@ function Navbar() {
               </>
             )}
             {isLoggedIn ? (
-              <Link href={"/my-page"} className="flex items-center spce-x-2">
+              <Link href={"/my-page"} className="flex items-center space-x-3">
                 <Image
                   src={
-                    user?.profileImage || "placeholder.svg?height=40&width=40"
+                    user?.profileImageUrl ||
+                    "placeholder.svg?height=40&width=40"
                   }
                   alt="Profile"
                   width={32}
                   height={32}
                   className="rounded-full border border-gray-200"
                 />
-                <span className="text-gray-700 font-medium">
-                  {user?.nickname}
+                <span className="text-gray-700 font-semibold">
+                  {user?.username}
                 </span>
               </Link>
             ) : (
