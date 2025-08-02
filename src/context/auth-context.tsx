@@ -99,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const deleteAccount = useCallback(async (): Promise<boolean> => {
     try {
       await deleteUserAPI();
+      logout();
       return true;
     } catch {
       return false;

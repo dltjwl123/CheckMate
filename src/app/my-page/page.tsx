@@ -1,6 +1,5 @@
 "use client";
 
-import { logoutAPI } from "@/api/authApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Button from "@/components/ui/button";
@@ -66,7 +65,6 @@ export default function MyPage() {
     setIsUpdatingProfile(true);
     try {
       await updateProfile(nickname, profileImage);
-      alert("프로필이 업데이트되었습니다.");
     } catch {
       return;
     } finally {
@@ -82,21 +80,16 @@ export default function MyPage() {
     }
 
     setIsChangingPassword(true);
-    try {
-      const success = await changePassword(newPassword);
-      if (success) {
-        alert("비밀번호가 변경되었습니다.");
-        // setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        throw "error";
-      }
-    } catch {
+    const success = await changePassword(newPassword);
+    if (success) {
+      alert("비밀번호가 변경되었습니다.");
+      // setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
       alert("비밀번호 변경에 실패하였습니다.");
-    } finally {
-      setIsChangingPassword(false);
     }
+    setIsChangingPassword(false);
   };
 
   const handleDeleteAccount = async () => {
@@ -107,7 +100,8 @@ export default function MyPage() {
       const success = await deleteAccount();
       if (success) {
         alert("계정이 삭제되었습니다.");
-        router.push("/login");
+      } else {
+        alert("계정 삭제에 실패하였습니다.");
       }
       setIsDeletingAccount(false);
     }
@@ -118,8 +112,7 @@ export default function MyPage() {
   }
 
   const handleLogout = async () => {
-    await logoutAPI();
-    logout();
+    await logout();
   };
 
   const isInvalidPassword = (password: string): boolean => {
