@@ -63,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const updateUserData: UpdateUserProfileRequest = {
-        userId: user.id,
         userName: newUserName,
         profileImgUrl: newProfileImage,
       };

@@ -1,6 +1,7 @@
 "use client";
 
 import { logoutAPI } from "@/api/authApi";
+import { updateUserProfileAPI } from "@/api/userApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Button from "@/components/ui/button";
@@ -64,17 +65,14 @@ export default function MyPage() {
     }
 
     setIsUpdatingProfile(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    let updatedProfileImgaeUrl = profileImage;
-    if (profileImageFile) {
-      // Simulate uploading the image and getting a URL
-      updatedProfileImgaeUrl = URL.createObjectURL(profileImageFile);
+    try {
+      await updateProfile(nickname, profileImage);
+      alert("프로필이 업데이트되었습니다.");
+    } catch {
+      return;
+    } finally {
+      setIsUpdatingProfile(false);
     }
-    updateProfile(nickname, updatedProfileImgaeUrl);
-    alert("프로필이 업데이트되었습니다.");
-    setIsUpdatingProfile(false);
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {

@@ -69,7 +69,6 @@ export const getReviewDataAPI = async (userId: number) => {
 };
 
 export interface UpdateUserProfileRequest {
-  userId: number;
   userName?: string;
   profileImgUrl?: string;
 }
