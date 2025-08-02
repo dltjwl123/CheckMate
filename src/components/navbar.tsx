@@ -53,7 +53,8 @@ function Navbar() {
                   alt="Profile"
                   width={32}
                   height={32}
-                  className="rounded-full border border-gray-200"
+                  unoptimized 
+                  className="w-8 h-8 rounded-full border border-gray-200 object-cover"
                 />
                 <span className="text-gray-700 font-semibold">
                   {user?.username}
