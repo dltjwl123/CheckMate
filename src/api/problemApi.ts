@@ -54,19 +54,24 @@ export interface AiReview {
   createdAt: string;
 }
 
+export interface UserReivew {
+  id: number;
+  reviewerName: string;
+  createdAt: Date;
+}
+
 export interface AnswerDetailResponse {
   id: number;
   year: number;
   accuracyRate: number;
   tagNames: string[];
-  problemTitle: string | null;
+  problemTitle: string;
   username: string;
-  status: "REVIEWED" | "PENDING" | "REJECTED";
+  status: "REVIEWED" | "CORRECT" | "INCORRECT";
   submittedAt: Date;
   answerImgSolutions: string[];
-  aiReview: AiReview | null;
-  userReviews: string[];
-  officialSolution: string;
+  aiReview: AiReview;
+  userReviewSummaries: UserReivew[];
 }
 
 export interface ProblemTag {
@@ -79,7 +84,13 @@ export interface Answer {
   id: number;
   userId: number;
   username: string;
-  answerStatus: "CORRECT" | "WRONG";
+  answerStatus:
+    | "CORRECT"
+    | "INCORRECT"
+    | "PARTIALLY_CORRECT"
+    | "UNANSWERED"
+    | "REVIEWED"
+    | "PENDING_REVIEW";
   submittedTime: Date; //ISO
 }
 
