@@ -143,7 +143,7 @@ export const getProblemDetailAPI = async (problemId: number) => {
 
 export const getSolutionDetailAPI = async (solutionId: number) => {
   try {
-    const res = await axiosInstance.get(`answer/detail/${solutionId}`);
+    const res = await axiosInstance.get(`answers/detail/${solutionId}`);
     const data: AnswerDetailResponse = res.data;
 
     return data;
