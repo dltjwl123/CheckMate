@@ -145,7 +145,7 @@ export default function MySolutionsPage() {
   }
 
   const mySolutins = solutionsData.filter(
-    (solution) => solution.submitter === user?.nickname
+    (solution) => solution.submitter === user?.username
   );
 
   return (
