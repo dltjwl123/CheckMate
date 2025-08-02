@@ -69,7 +69,6 @@ export const getReviewDataAPI = async (userId: number) => {
 };
 
 export interface UpdateUserProfileRequest {
-  userId: number;
   userName?: string;
   profileImgUrl?: string;
 }
@@ -85,7 +84,9 @@ export const updateUserProfileAPI = async (data: UpdateUserProfileRequest) => {
 
 export const updateUserPasswordAPI = async (newPassword: string) => {
   try {
-    await axiosInstance.post("user/my-page/password-update", newPassword);
+    await axiosInstance.post("user/my-page/password-update", {
+      newPassword,
+    });
   } catch (erorr) {
     apiErrorHandler(erorr);
   }

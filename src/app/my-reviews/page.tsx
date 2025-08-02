@@ -164,7 +164,7 @@ export default function MyReviewPage() {
 
   const myReviews = solutionsData.flatMap((solution) =>
     solution.reviews
-      .filter((review) => review.reviewer === user?.nickname)
+      .filter((review) => review.reviewer === user?.username)
       .map((review) => ({
         ...review,
         solutionId: solution.id,

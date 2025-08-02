@@ -1,6 +1,5 @@
 "use client";
 
-import { logoutAPI } from "@/api/authApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Button from "@/components/ui/button";
@@ -20,11 +19,11 @@ export default function MyPage() {
   const [profileImage, setProfileImage] = useState<string>(
     user?.profileImageUrl || "/placeholder.svg?height=40&width=40"
   );
-  const [currentPassword, setCurrentPassword] = useState<string>("");
+  // const [currentPassword, setCurrentPassword] = useState<string>("");
+  // const [showCurrentPassword, setShowCurrentPassword] =
+  //   useState<boolean>(false);
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [showCurrentPassword, setShowCurrentPassword] =
-    useState<boolean>(false);
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
@@ -64,17 +63,16 @@ export default function MyPage() {
     }
 
     setIsUpdatingProfile(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    let updatedProfileImgaeUrl = profileImage;
-    if (profileImageFile) {
-      // Simulate uploading the image and getting a URL
-      updatedProfileImgaeUrl = URL.createObjectURL(profileImageFile);
+    try {
+      await updateProfile(
+        nickname,
+        profileImageFile ? profileImageFile : undefined
+      );
+    } catch {
+      return;
+    } finally {
+      setIsUpdatingProfile(false);
     }
-    updateProfile(nickname, updatedProfileImgaeUrl);
-    alert("프로필이 업데이트되었습니다.");
-    setIsUpdatingProfile(false);
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -85,16 +83,14 @@ export default function MyPage() {
     }
 
     setIsChangingPassword(true);
-    try {
-    } catch {
-      alert("비밀번호 변경에 실패하였습니다.");
-    }
-    const success = await changePassword(currentPassword, newPassword);
+    const success = await changePassword(newPassword);
     if (success) {
       alert("비밀번호가 변경되었습니다.");
-      setCurrentPassword("");
+      // setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+    } else {
+      alert("비밀번호 변경에 실패하였습니다.");
     }
     setIsChangingPassword(false);
   };
@@ -107,7 +103,8 @@ export default function MyPage() {
       const success = await deleteAccount();
       if (success) {
         alert("계정이 삭제되었습니다.");
-        router.push("/login");
+      } else {
+        alert("계정 삭제에 실패하였습니다.");
       }
       setIsDeletingAccount(false);
     }
@@ -118,8 +115,15 @@ export default function MyPage() {
   }
 
   const handleLogout = async () => {
-    await logoutAPI();
-    logout();
+    await logout();
+  };
+
+  const isInvalidPassword = (password: string): boolean => {
+    const passwordRegex = /^[!-~]*$/; // ASCII printable 문자 (32 제외)
+    if (!passwordRegex.test(password) && password !== "") {
+      return false;
+    }
+    return true;
   };
 
   return (
@@ -207,7 +211,7 @@ export default function MyPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleChangePassword} className="space-y-4">
-                <div>
+                {/* <div>
                   <label
                     htmlFor="current-password"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -220,7 +224,11 @@ export default function MyPage() {
                       name="current-password"
                       type={showCurrentPassword ? "text" : "password"}
                       value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      onChange={(e) => {
+                        if (isInvalidPassword(e.target.value)) {
+                          setCurrentPassword(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="현재 비밀번호를 입력하세요"
                       required
@@ -239,7 +247,7 @@ export default function MyPage() {
                       )}
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 <div>
                   <label
@@ -254,9 +262,13 @@ export default function MyPage() {
                       name="new-password"
                       type={showNewPassword ? "text" : "password"}
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        if (isInvalidPassword(e.target.value)) {
+                          setNewPassword(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="새 비밀번호를 입력하세요"
+                      placeholder="새 비밀번호를 입력하세요(8자 이상)"
                       required
                     />
                     <button
@@ -286,7 +298,11 @@ export default function MyPage() {
                       name="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        if (isInvalidPassword(e.target.value)) {
+                          setConfirmPassword(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="비밀번호를 다시 입력하세요"
                       required
@@ -315,7 +331,7 @@ export default function MyPage() {
           </Card>
 
           {/* Account Card */}
-          <Card>
+          <Card className="mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <LogOut className="h-5 w-5" />
