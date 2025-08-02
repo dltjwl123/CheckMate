@@ -30,7 +30,7 @@ export default function MyPage() {
   const [isUpdataingProfile, setIsUpdatingProfile] = useState<boolean>(false);
   const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState<boolean>(false);
-  // const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -46,7 +46,7 @@ export default function MyPage() {
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // setProfileImageFile(file);
+      setProfileImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -64,7 +64,10 @@ export default function MyPage() {
 
     setIsUpdatingProfile(true);
     try {
-      await updateProfile(nickname, profileImage);
+      await updateProfile(
+        nickname,
+        profileImageFile ? profileImageFile : undefined
+      );
     } catch {
       return;
     } finally {

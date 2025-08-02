@@ -8,6 +8,7 @@ import {
   UpdateUserProfileRequest,
   UserProfile,
 } from "@/api/userApi";
+import { fileUploader } from "@/utils/fileUploader";
 import { useRouter } from "next/navigation";
 import React, {
   useState,
@@ -22,10 +23,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (
-    newNickname: string,
-    newProfileImage?: string
-  ) => Promise<void>;
+  updateProfile: (newNickname: string, newProfileImage?: File) => Promise<void>;
   changePassword: (newPassword: string) => Promise<boolean>;
   deleteAccount: () => Promise<boolean>;
 }
@@ -61,13 +59,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const updateProfile = useCallback(
-    async (newUserName?: string, newProfileImage?: string) => {
+    async (newUserName?: string, newProfileImage?: File) => {
       if (!user) {
         return;
       }
+
+      let uploadedImgURL: string | undefined = undefined;
+
+      if (newProfileImage) {
+        const urls: string[] = await fileUploader([newProfileImage]);
+        uploadedImgURL = urls[0];
+      }
       const updateUserData: UpdateUserProfileRequest = {
         userName: newUserName,
-        profileImgUrl: newProfileImage,
+        profileImgUrl: uploadedImgURL,
       };
 
       try {
@@ -77,8 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return {
             ...prevUser,
             ...(newUserName !== undefined && { username: newUserName }),
-            ...(newProfileImage !== undefined && {
-              profileImageUrl: newProfileImage,
+            ...(uploadedImgURL !== undefined && {
+              profileImageUrl: uploadedImgURL,
             }),
           };
         });
