@@ -331,7 +331,7 @@ export default function MyPage() {
           </Card>
 
           {/* Account Card */}
-          <Card>
+          <Card className="mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <LogOut className="h-5 w-5" />

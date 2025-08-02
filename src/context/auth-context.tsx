@@ -99,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (newPassword: string): Promise<boolean> => {
       try {
         await updateUserPasswordAPI(newPassword);
+        await logout();
         return true;
       } catch {
         return false;
