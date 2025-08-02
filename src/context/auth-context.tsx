@@ -9,7 +9,13 @@ import {
   UserProfile,
 } from "@/api/userApi";
 import { useRouter } from "next/navigation";
-import React, { useState, createContext, useCallback, useContext } from "react";
+import React, {
+  useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+} from "react";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -115,6 +121,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     changePassword,
     deleteAccount,
   };
+
+  useEffect(() => {
+    const autoLogin = async () => {
+      const userData = await getUserDataAPI();
+      if (!userData) {
+        return;
+      }
+      setUser(userData);
+      setIsLoggedIn(true);
+    };
+
+    autoLogin();
+  }, []);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
