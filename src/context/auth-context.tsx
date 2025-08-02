@@ -123,6 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    if (isLoggedIn) {
+      return;
+    }
+
     const autoLogin = async () => {
       const userData = await getUserDataAPI();
       if (!userData) {
