@@ -73,7 +73,8 @@ function Signup() {
 
     // 닉네임: 한글, 영어, 숫자, 특수문자(ASCII 33~126)
     if (name === "nickname") {
-      const nicknameRegex = /^[\uAC00-\uD7A3a-zA-Z0-9!-/:-@[-`{-~]*$/;
+      const nicknameRegex =
+        /^[\u3131-\u318E\uAC00-\uD7A3a-zA-Z0-9!-/:-@[-`{-~]*$/;
       if (!nicknameRegex.test(value) && value !== "") return;
     }
 
