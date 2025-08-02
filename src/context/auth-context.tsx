@@ -105,13 +105,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
     },
-    []
+    [logout]
   );
 
   const deleteAccount = useCallback(async (): Promise<boolean> => {
     try {
       await deleteUserAPI();
-      logout();
+      setIsLoggedIn(false);
       return true;
     } catch {
       return false;
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     autoLogin();
-  }, []);
+  }, [isLoggedIn]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
