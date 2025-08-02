@@ -20,10 +20,7 @@ interface AuthContextType {
     newNickname: string,
     newProfileImage?: string
   ) => Promise<void>;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => Promise<boolean>;
+  changePassword: (newPassword: string) => Promise<boolean>;
   deleteAccount: () => Promise<boolean>;
 }
 

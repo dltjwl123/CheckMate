@@ -1,7 +1,6 @@
 "use client";
 
 import { logoutAPI } from "@/api/authApi";
-import { updateUserProfileAPI } from "@/api/userApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Button from "@/components/ui/button";
@@ -21,18 +20,18 @@ export default function MyPage() {
   const [profileImage, setProfileImage] = useState<string>(
     user?.profileImageUrl || "/placeholder.svg?height=40&width=40"
   );
-  const [currentPassword, setCurrentPassword] = useState<string>("");
+  // const [currentPassword, setCurrentPassword] = useState<string>("");
+  // const [showCurrentPassword, setShowCurrentPassword] =
+  //   useState<boolean>(false);
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [showCurrentPassword, setShowCurrentPassword] =
-    useState<boolean>(false);
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [isUpdataingProfile, setIsUpdatingProfile] = useState<boolean>(false);
   const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState<boolean>(false);
-  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  // const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -48,7 +47,7 @@ export default function MyPage() {
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setProfileImageFile(file);
+      // setProfileImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
@@ -84,17 +83,20 @@ export default function MyPage() {
 
     setIsChangingPassword(true);
     try {
+      const success = await changePassword(newPassword);
+      if (success) {
+        alert("비밀번호가 변경되었습니다.");
+        // setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        throw "error";
+      }
     } catch {
       alert("비밀번호 변경에 실패하였습니다.");
+    } finally {
+      setIsChangingPassword(false);
     }
-    const success = await changePassword(currentPassword, newPassword);
-    if (success) {
-      alert("비밀번호가 변경되었습니다.");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    }
-    setIsChangingPassword(false);
   };
 
   const handleDeleteAccount = async () => {
@@ -118,6 +120,14 @@ export default function MyPage() {
   const handleLogout = async () => {
     await logoutAPI();
     logout();
+  };
+
+  const isInvalidPassword = (password: string): boolean => {
+    const passwordRegex = /^[!-~]*$/; // ASCII printable 문자 (32 제외)
+    if (!passwordRegex.test(password) && password !== "") {
+      return false;
+    }
+    return true;
   };
 
   return (
@@ -205,7 +215,7 @@ export default function MyPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleChangePassword} className="space-y-4">
-                <div>
+                {/* <div>
                   <label
                     htmlFor="current-password"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -218,7 +228,11 @@ export default function MyPage() {
                       name="current-password"
                       type={showCurrentPassword ? "text" : "password"}
                       value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      onChange={(e) => {
+                        if (isInvalidPassword(e.target.value)) {
+                          setCurrentPassword(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="현재 비밀번호를 입력하세요"
                       required
@@ -237,7 +251,7 @@ export default function MyPage() {
                       )}
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 <div>
                   <label
@@ -252,9 +266,13 @@ export default function MyPage() {
                       name="new-password"
                       type={showNewPassword ? "text" : "password"}
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        if (isInvalidPassword(e.target.value)) {
+                          setNewPassword(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="새 비밀번호를 입력하세요"
+                      placeholder="새 비밀번호를 입력하세요(8자 이상)"
                       required
                     />
                     <button
@@ -284,7 +302,11 @@ export default function MyPage() {
                       name="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        if (isInvalidPassword(e.target.value)) {
+                          setConfirmPassword(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="비밀번호를 다시 입력하세요"
                       required
