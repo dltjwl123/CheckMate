@@ -7,16 +7,41 @@ export interface AnnotationPosition {
 }
 
 export interface Annotation {
-  imageUrl: string | null;
-  content: string | null;
+  imageUrl: string;
+  content: string;
   position: AnnotationPosition;
   width: number;
   height: number;
   index: number;
+  pageNumber: number;
 }
 
 export interface ReviewAnnotationsRequest {
   annotations: Annotation[];
+}
+
+export type ReviewerType = "STUDENT" | "TEACHER";
+
+export interface ReviewLayer {
+  imgUrl: string;
+  pageNumber: number;
+}
+
+export interface ReviewDetailResponse {
+  id: number;
+  answerId: number;
+  reviewerId: number;
+  reviewerName: string;
+  reviewerType: ReviewerType;
+  aiReviewContent: string | null;
+  createdAt: Date;
+  annotations: Annotation[];
+  layers: ReviewLayer[];
+}
+
+export interface CreateReviewCommentRequest {
+  parentId: number | null;
+  content: string;
 }
 
 export const createReviewAPI = async (
@@ -30,19 +55,6 @@ export const createReviewAPI = async (
   }
 };
 
-export type ReviewerType = "STUDENT" | "TEACHER";
-
-export interface ReviewDetailResponse {
-  id: number;
-  answerId: number;
-  reviewerId: number;
-  reviewerName: string;
-  reviewerType: ReviewerType;
-  aiReviewContent: string | null;
-  createdAt: string; // ISO datetime string
-  annotations: Annotation[];
-}
-
 export const getReviewDetailAPI = async (reviewId: number) => {
   try {
     const res = await axiosInstance.get(`review/review-detail/${reviewId}`);
@@ -53,11 +65,6 @@ export const getReviewDetailAPI = async (reviewId: number) => {
     apiErrorHandler(error);
   }
 };
-
-export interface CreateReviewCommentRequest {
-  parentId: number | null;
-  content: string;
-}
 
 export const createReviewComment = async (
   data: CreateReviewCommentRequest,
