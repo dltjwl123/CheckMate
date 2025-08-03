@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import Button from "./ui/button";
 import { DrawingCanvas } from "./drawing-canvas";
+import { createBlankImageDataUrl } from "@/utils/createBlankPage";
 
-interface ReviewTextBox {
+export interface ReviewTextBox {
   id: string;
   x: number;
   y: number;
@@ -53,7 +54,7 @@ export default function ReviewEditor({
     initialSolutionImageUrls.map((url, index) => ({
       id: `page-${index + 1}`,
       backgroundImageUrl: url,
-      drawingData: "",
+      drawingData: createBlankImageDataUrl(600, 800, "transparent"),
       textBoxes: [],
     }))
   );
@@ -273,8 +274,7 @@ export default function ReviewEditor({
   const addNewBlankPage = () => {
     const newPage: ReviewPageData = {
       id: `page-${Date.now()}`,
-      backgroundImageUrl:
-        "/placeholder.svg?height=800&width=600&text=Blank+Page",
+      backgroundImageUrl: createBlankImageDataUrl(600, 800),
       drawingData: "",
       textBoxes: [],
     };

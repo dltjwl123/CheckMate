@@ -61,7 +61,7 @@ function Navbar() {
                 </span>
               </Link>
             ) : (
-              <Link href={"login"}>
+              <Link href={"/login"}>
                 <Button>로그인</Button>
               </Link>
             )}
