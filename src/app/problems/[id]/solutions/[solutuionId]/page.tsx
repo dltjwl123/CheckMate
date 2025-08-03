@@ -6,13 +6,7 @@ import {
   getSolutionDetailAPI,
   ProblemDetailResponse,
 } from "@/api/problemApi";
-import {
-  Annotation,
-  getReviewDetailAPI,
-  ReviewDetailResponse,
-  ReviewLayer,
-} from "@/api/reviewApi";
-import { ReviewDataResponse } from "@/api/userApi";
+import { Annotation, getReviewDetailAPI, ReviewLayer } from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
@@ -166,7 +160,7 @@ export default function SolutionsDetailPage() {
     };
 
     getReviewPages();
-  }, [reviewrIndex, selectedReviewId]);
+  }, [reviewrIndex, selectedReviewId, reviewDataList]);
 
   useEffect(() => {
     if (reviewDataList[reviewrIndex]) {
