@@ -62,6 +62,8 @@ export default function SolutionsDetailPage() {
   );
   const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
   const [reviewPages, setReviewPages] = useState<ReviewPage[] | null>(null);
+  const [activeOfficialImageIndex, setActiveOfficialImageIndex] =
+    useState<number>(0);
 
   useEffect(() => {
     const getProblemDetail = async () => {
@@ -106,6 +108,11 @@ export default function SolutionsDetailPage() {
           solutionDetail.userReviewSummaries.length;
         const nullArray: null[] = Array(userRievewNumber).fill(null);
         setReviewDataList(nullArray);
+        setSelectedReviewId(
+          solutionDetail.userReviewSummaries[0].id !== undefined
+            ? solutionDetail.userReviewSummaries[0].id
+            : null
+        );
       } catch {
         alert("풀이 불러오기에 실패하였습니다.");
       } finally {
@@ -405,8 +412,8 @@ export default function SolutionsDetailPage() {
           </Card>
         )}
 
-        {activeTab === "official" && problem.solutionImageUrl && (
-          <Card>
+        {activeTab === "official" && (
+          <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-green-600" />
@@ -414,23 +421,60 @@ export default function SolutionsDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none">
-                <div
-                  className="whitespace-pre-wrap text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: problem.solutionImageUrl
-                      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-                      .replace(
-                        /\$\$(.*?)\$\$/g,
-                        `<div class="my-4 p-3 bg-blue-50 border-l-4 border-blue-400 font-mono text-center">$1</div>`
-                      )
-                      .replace(
-                        /\$(.*?)\$/g,
-                        `<span class="font-mono bg-gray-100 px-1 rounded">$1</span>`
-                      ),
-                  }}
-                />
-              </div>
+              {problem.problemImgSolutions &&
+              problem.problemImgSolutions.length > 0 ? (
+                <>
+                  {/* 썸네일 목록 + 메인 이미지 렌더링 (앞서 만든 코드 그대로 삽입) */}
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    {problem.problemImgSolutions.map((imgUrl, index) => (
+                      <div
+                        key={index}
+                        className={`relative w-20 h-20 border rounded-md overflow-hidden cursor-pointer ${
+                          activeOfficialImageIndex === index
+                            ? "border-blue-500 ring-2 ring-blue-500"
+                            : "border-gray-200"
+                        }`}
+                        onClick={() => setActiveOfficialImageIndex(index)}
+                      >
+                        <Image
+                          src={imgUrl || "/placeholder.svg"}
+                          alt={`공식 풀이 썸네일 ${index + 1}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          className="rounded-md"
+                        />
+                        <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
+                          {index + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-white rounded-md overflow-hidden border border-gray-200">
+                    <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 border-b border-gray-200">
+                      공식 풀이 이미지 (페이지 {activeOfficialImageIndex + 1} /{" "}
+                      {problem.problemImgSolutions.length})
+                    </div>
+                    <div className="flex justify-center p-4">
+                      <Image
+                        src={
+                          problem.problemImgSolutions[
+                            activeOfficialImageIndex
+                          ] || "/placeholder.svg"
+                        }
+                        alt={`공식 풀이 페이지 ${activeOfficialImageIndex + 1}`}
+                        width={600}
+                        height={800}
+                        className="max-w-full h-auto rounded shadow-sm"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  아직 공식 풀이가 없습니다.
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -556,9 +600,9 @@ export default function SolutionsDetailPage() {
                       )}
                       {/* Text Boxes */}
                       {reviewPages[activeReviewPageIndex].annotations.map(
-                        (annotation) => (
+                        (annotation, index) => (
                           <div
-                            key={annotation.index}
+                            key={index}
                             className="absolute bg-yellow-100 bg-opacity-70
                 border border-yellow-400 rounded p-2 text-sm text-gray-800 overflow-hidden"
                             style={{
