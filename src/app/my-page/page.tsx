@@ -63,16 +63,11 @@ export default function MyPage() {
     }
 
     setIsUpdatingProfile(true);
-    try {
-      await updateProfile(
-        nickname,
-        profileImageFile ? profileImageFile : undefined
-      );
-    } catch {
-      return;
-    } finally {
-      setIsUpdatingProfile(false);
-    }
+    await updateProfile(
+      nickname,
+      profileImageFile ? profileImageFile : undefined
+    );
+    setIsUpdatingProfile(false);
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -137,7 +132,7 @@ export default function MyPage() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5">내 프로필</User>
+                <User className="h-5 w-5" />내 프로필
               </CardTitle>
             </CardHeader>
             <CardContent>

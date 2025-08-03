@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
 import { ArrowLeft, ArrowRight, Check, Plus, Upload } from "lucide-react";
@@ -15,10 +15,12 @@ import {
   submitUserSolution,
 } from "@/api/problemApi";
 import { useAuth } from "@/context/auth-context";
+import { fileUploader } from "@/utils/fileUploader";
 
 function Problem() {
   const { id } = useParams();
   const { isLoggedIn } = useAuth();
+  const router = useRouter();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -28,6 +30,7 @@ function Problem() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [answer, setAnswer] = useState<string>("");
+  const [imgFiles, setImgFiles] = useState<File[]>([]);
 
   useEffect(() => {
     const getProblemDetail = async () => {
@@ -81,7 +84,7 @@ function Problem() {
     fetchLastSolution();
   }, [problem]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
 
     if (!files || files.length === 0) {
@@ -108,6 +111,7 @@ function Problem() {
       };
       reader.readAsDataURL(file);
     });
+    setImgFiles((prev) => [...prev, ...files]);
   };
 
   const handleChangingAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,11 +129,15 @@ function Problem() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const uploadedFileURLs: string[] = await fileUploader(imgFiles);
+
       await submitUserSolution({
         answer: Number(answer),
-        answerImgUrls: solutionImages,
+        answerImgUrls: uploadedFileURLs,
         problemId,
       });
+      alert("풀이가 제출되었습니다.");
+      router.push("/");
     } catch {
       alert("풀이 제출에 실패하였습니다.");
     } finally {
@@ -330,6 +338,7 @@ function Problem() {
                           onClick={() => {
                             setSolutionImages([]);
                             setActiveImageIndex(0);
+                            setImgFiles([]);
                           }}
                         >
                           <Upload className="h-4 w-4" />

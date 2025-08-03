@@ -226,7 +226,9 @@ export default function MySolutionsPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-right text-sm text-gray-500">
-                            {getRelativeTime(solution.submittedAt)}
+                            {getRelativeTime(
+                              solution.submittedAt.toDateString()
+                            )}
                           </TableCell>
                         </TableRow>
                       );

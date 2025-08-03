@@ -54,19 +54,24 @@ export interface AiReview {
   createdAt: string;
 }
 
+export interface UserReivew {
+  id: number;
+  reviewerName: string;
+  createdAt: string;
+}
+
 export interface AnswerDetailResponse {
   id: number;
   year: number;
   accuracyRate: number;
   tagNames: string[];
-  problemTitle: string | null;
+  problemTitle: string;
   username: string;
-  status: "REVIEWED" | "PENDING" | "REJECTED";
-  submittedAt: Date;
+  status: "REVIEWED" | "CORRECT" | "INCORRECT";
+  submittedAt: string;
   answerImgSolutions: string[];
-  aiReview: AiReview | null;
-  userReviews: string[];
-  officialSolution: string;
+  aiReview: AiReview;
+  userReviewSummaries: UserReivew[];
 }
 
 export interface ProblemTag {
@@ -79,8 +84,14 @@ export interface Answer {
   id: number;
   userId: number;
   username: string;
-  answerStatus: "CORRECT" | "WRONG";
-  submittedTime: Date; //ISO
+  answerStatus:
+    | "CORRECT"
+    | "INCORRECT"
+    | "PARTIALLY_CORRECT"
+    | "UNANSWERED"
+    | "REVIEWED"
+    | "PENDING_REVIEW";
+  submittedAt: string; //ISO
 }
 
 //year, solved
@@ -143,7 +154,7 @@ export const getProblemDetailAPI = async (problemId: number) => {
 
 export const getSolutionDetailAPI = async (solutionId: number) => {
   try {
-    const res = await axiosInstance.get(`answer/detail/${solutionId}`);
+    const res = await axiosInstance.get(`answers/detail/${solutionId}`);
     const data: AnswerDetailResponse = res.data;
 
     return data;

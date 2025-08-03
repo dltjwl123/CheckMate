@@ -1,6 +1,7 @@
-export const getRelativeTime = (date: Date): string => {
+export const getRelativeTime = (date: string): string => {
   const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
+  const input = new Date(date);
+  const diffInMs = now.getTime() - input.getTime();
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
   const diffInHours = Math.floor(diffInMinutes / 60);
   const diffInDays = Math.floor(diffInHours / 24);

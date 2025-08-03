@@ -237,7 +237,7 @@ export default function MyReviewPage() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right text-sm text-gray-500">
-                            {getRelativeTime(review.submittedAt)}
+                            {getRelativeTime(review.submittedAt.toDateString())}
                           </TableCell>
                         </TableRow>
                       );
