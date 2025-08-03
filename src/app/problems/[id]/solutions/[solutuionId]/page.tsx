@@ -16,6 +16,7 @@ import { ReviewDataResponse } from "@/api/userApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
+import Button from "@/components/ui/button";
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRelativeTime } from "@/utils/time";
 import {
@@ -23,6 +24,7 @@ import {
   BookOpen,
   Bot,
   Check,
+  MessageSquare,
   MessagesSquare,
   User,
   X,
@@ -48,7 +50,7 @@ interface ReviewData {
 }
 
 export default function SolutionsDetailPage() {
-  const { id } = useParams();
+  const { id, solutionId } = useParams();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -591,6 +593,16 @@ export default function SolutionsDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Review Button */}
+        <div className="mt-8 text-right">
+          <Link href={`/problems/${problemId}/solutions/${solutionId}/review`}>
+            <Button className="flex items-center gap-2 ml-auto">
+              <MessageSquare className="h-4 w-4" />
+              리뷰 작성
+            </Button>
+          </Link>
+        </div>
       </main>
       <Footer />
     </div>
