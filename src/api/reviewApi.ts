@@ -12,12 +12,12 @@ export interface Annotation {
   position: AnnotationPosition;
   width: number;
   height: number;
-  index: number;
   pageNumber: number;
 }
 
-export interface ReviewAnnotationsRequest {
+export interface ReviewCreateRequest {
   annotations: Annotation[];
+  layers: ReviewLayer[];
 }
 
 export type ReviewerType = "STUDENT" | "TEACHER";
@@ -45,7 +45,7 @@ export interface CreateReviewCommentRequest {
 }
 
 export const createReviewAPI = async (
-  data: ReviewAnnotationsRequest,
+  data: ReviewCreateRequest,
   problemId: number
 ) => {
   try {

@@ -1,9 +1,20 @@
 "use client";
 
 import { AnswerDetailResponse, getSolutionDetailAPI } from "@/api/problemApi";
+import {
+  Annotation,
+  createReviewAPI,
+  ReviewCreateRequest,
+  ReviewLayer,
+} from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import ReviewEditor, { ReviewPageData } from "@/components/review-editor";
+import ReviewEditor, {
+  ReviewPageData,
+  ReviewTextBox,
+} from "@/components/review-editor";
+import { useAuth } from "@/context/auth-context";
+import { binaryToFile, fileUploader } from "@/utils/fileUploader";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -12,6 +23,7 @@ import { useEffect, useState } from "react";
 export default function ReviewCreatePage() {
   const router = useRouter();
   const { id, solutionId } = useParams();
+  const { user } = useAuth();
   const problemId = Number.parseInt(id as string);
   const [solution, setSolution] = useState<AnswerDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -37,10 +49,60 @@ export default function ReviewCreatePage() {
     getSolutionDetail();
   }, []);
 
-  const handleSubmitReview = (reviewPagesData: ReviewPageData[]) => {
-    console.log("리뷰 제출:", reviewPagesData);
-    alert("리뷰가 제출되었습니다.");
-    router.push(`/problems/${problemId}/solutions/${solutionId}`);
+  const handleSubmitReview = async (reviewPagesData: ReviewPageData[]) => {
+    try {
+      const annotations: Annotation[] = reviewPagesData.reduce(
+        (
+          collecter: Annotation[],
+          reviewPage: ReviewPageData,
+          pageIndex: number
+        ) => {
+          const texboxes: ReviewTextBox[] = reviewPage.textBoxes;
+          texboxes.forEach((textbox: ReviewTextBox) => {
+            collecter.push({
+              content: textbox.content,
+              imageUrl: "",
+              height: textbox.height,
+              width: textbox.width,
+              position: {
+                x: textbox.x,
+                y: textbox.y,
+              },
+              pageNumber: pageIndex,
+            });
+          });
+          return collecter;
+        },
+        []
+      );
+      const reviewImgFiles: File[] = reviewPagesData.map(
+        (reviewPage: ReviewPageData, index: number) =>
+          binaryToFile(
+            reviewPage.drawingData,
+            `${user?.id}-${solutionId}-${index}`
+          )
+      );
+      const uploadedUrls: string[] = await fileUploader(reviewImgFiles);
+      const layers: ReviewLayer[] = uploadedUrls.map(
+        (url: string, index: number) => ({
+          imgUrl: url,
+          pageNumber: index,
+        })
+      );
+      const reviewData: ReviewCreateRequest = {
+        annotations,
+        layers,
+      };
+
+      await createReviewAPI(reviewData, problemId);
+
+      alert("리뷰가 제출되었습니다.");
+      router.push(`/problems/${problemId}/solutions/${solutionId}`);
+    } catch (error) {
+      console.error(error);
+      alert("리뷰 업로드에 실패하였습니다.");
+    } finally {
+    }
   };
 
   return (
