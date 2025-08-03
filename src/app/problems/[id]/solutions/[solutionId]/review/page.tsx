@@ -47,7 +47,7 @@ export default function ReviewCreatePage() {
     };
 
     getSolutionDetail();
-  }, []);
+  }, [solutionId]);
 
   const handleSubmitReview = async (reviewPagesData: ReviewPageData[]) => {
     try {
