@@ -183,7 +183,7 @@ export default function SolutionPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right text-sm text-gray-500">
-                        {answer.submittedTime ? getRelativeTime(answer.submittedTime) : "불명"}
+                        {answer.submittedAt ? getRelativeTime(answer.submittedAt) : "불명"}
                       </TableCell>
                     </TableRow>
                   ))}

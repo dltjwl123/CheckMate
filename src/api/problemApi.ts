@@ -57,7 +57,7 @@ export interface AiReview {
 export interface UserReivew {
   id: number;
   reviewerName: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface AnswerDetailResponse {
@@ -68,7 +68,7 @@ export interface AnswerDetailResponse {
   problemTitle: string;
   username: string;
   status: "REVIEWED" | "CORRECT" | "INCORRECT";
-  submittedAt: Date;
+  submittedAt: string;
   answerImgSolutions: string[];
   aiReview: AiReview;
   userReviewSummaries: UserReivew[];
@@ -91,7 +91,7 @@ export interface Answer {
     | "UNANSWERED"
     | "REVIEWED"
     | "PENDING_REVIEW";
-  submittedTime: Date; //ISO
+  submittedAt: string; //ISO
 }
 
 //year, solved
