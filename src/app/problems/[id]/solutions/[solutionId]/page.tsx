@@ -23,6 +23,7 @@ import {
   BookOpen,
   Bot,
   Check,
+  Edit,
   MessageSquare,
   MessagesSquare,
   User,
@@ -687,6 +688,14 @@ export default function SolutionsDetailPage() {
               )}
             </CardContent>
             <div className="mb-4 mr-8 text-right space-x-2">
+              <Link
+                href={`/problems/${problemId}/solutions/${solutionId}/review?reviewId=${selectedReviewId}`}
+              >
+                <Button className="flex items-center gap-2 ml-auto">
+                  <Edit className="h-4 w-4" />
+                  리뷰 수정
+                </Button>
+              </Link>
               <Button
                 onClick={handleDeleteReview}
                 className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
