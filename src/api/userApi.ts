@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { apiErrorHandler } from "@/utils/errorHandler";
+import axios from "axios";
 
 export type UserType = "STUDENT" | "TEACHER";
 
@@ -10,17 +11,6 @@ export interface UserProfile {
   userType: UserType;
   profileImageUrl: string;
 }
-
-export const getUserDataAPI = async () => {
-  try {
-    const res = await axiosInstance.get(`user/my-page/user-data`);
-    const userProfile: UserProfile = res.data;
-
-    return userProfile;
-  } catch (error) {
-    apiErrorHandler(error);
-  }
-};
 
 export type AnswerStatus = "REVIEWED" | "PENDING";
 
@@ -45,6 +35,28 @@ export interface ReviewSummary {
 }
 
 export type myReviewSummaryListResponse = ReviewSummary[];
+
+export const getUserDataAPI = async () => {
+  try {
+    const res = await axiosInstance.get(`user/my-page/user-data`);
+    const userProfile: UserProfile = res.data;
+
+    return userProfile;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const getMeInternalAPI = async () => {
+  try {
+    const res = await axios.get("internal/me");
+    const userProfile: UserProfile = res.data;
+
+    return userProfile;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
 
 export const getMyAnswerListAPI = async () => {
   try {

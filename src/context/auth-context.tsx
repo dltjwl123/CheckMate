@@ -2,6 +2,7 @@
 
 import { deleteUserAPI, loginAPI, logoutAPI } from "@/api/authApi";
 import {
+  getMeInternalAPI,
   getUserDataAPI,
   updateUserPasswordAPI,
   updateUserProfileAPI,
@@ -39,15 +40,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await loginAPI(email, password);
 
-      const userData = await getUserDataAPI();
+      const userData = await getMeInternalAPI();
       if (!userData) {
-        throw "error";
+        throw new Error("user info failure");
       }
       setUser(userData);
       setIsLoggedIn(true);
     } catch (error) {
+      console.error(error);
       alert("로그인에 실패하였습니다.");
-      throw error;
     }
   }, []);
 
@@ -134,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const autoLogin = async () => {
-      const userData = await getUserDataAPI();
+      const userData = await getMeInternalAPI();
       if (!userData) {
         return;
       }
