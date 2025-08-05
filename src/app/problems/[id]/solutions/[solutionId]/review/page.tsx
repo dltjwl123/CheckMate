@@ -4,29 +4,33 @@ import { AnswerDetailResponse, getSolutionDetailAPI } from "@/api/problemApi";
 import {
   Annotation,
   createReviewAPI,
+  getReviewDetailAPI,
   ReviewCreateRequest,
+  ReviewDetailResponse,
   ReviewLayer,
 } from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import ReviewEditor, {
-  ReviewPageData,
-  ReviewTextBox,
-} from "@/components/review-editor";
+import ReviewEditor from "@/components/review-editor";
 import { useAuth } from "@/context/auth-context";
 import { binaryToFile, fileUploader } from "@/utils/fileUploader";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ReviewPage } from "../page";
 
 export default function ReviewCreatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { id, solutionId } = useParams();
+  const reviewId = searchParams.get("reviewId");
   const { user } = useAuth();
   const problemId = Number.parseInt(id as string);
   const [solution, setSolution] = useState<AnswerDetailResponse | null>(null);
+  const [review, setReview] = useState<ReviewDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isReviewLoading, setIsReviewLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const getSolutionDetail = async () => {
@@ -49,43 +53,93 @@ export default function ReviewCreatePage() {
     getSolutionDetail();
   }, [solutionId]);
 
-  const handleSubmitReview = async (reviewPagesData: ReviewPageData[]) => {
+  useEffect(() => {
+    if (!reviewId) {
+      return;
+    }
+
+    const getReviewDetail = async () => {
+      setIsReviewLoading(true);
+      try {
+        const data = await getReviewDetailAPI(Number(reviewId));
+
+        if (!data) {
+          throw new Error("reviewDetailAPI error");
+        }
+
+        setReview(data);
+      } catch (error) {
+        console.error(error);
+        alert("리뷰 불러오기에 실패하였습니다.");
+      } finally {
+        setIsReviewLoading(false);
+      }
+    };
+
+    getReviewDetail();
+  }, [reviewId]);
+
+  const handleSubmitReview = async (reviewPagesData: ReviewPage[]) => {
     try {
       const annotations: Annotation[] = reviewPagesData.reduce(
         (
           collecter: Annotation[],
-          reviewPage: ReviewPageData,
+          reviewPage: ReviewPage,
           pageIndex: number
         ) => {
-          const texboxes: ReviewTextBox[] = reviewPage.textBoxes;
-          texboxes.forEach((textbox: ReviewTextBox) => {
-            collecter.push({
-              content: textbox.content,
-              imageUrl: "",
-              height: textbox.height,
-              width: textbox.width,
-              position: {
-                x: textbox.x,
-                y: textbox.y,
-              },
+          const pagedAnnotations: Annotation[] = reviewPage.annotations.map(
+            (prev) => ({
+              ...prev,
               pageNumber: pageIndex,
-            });
-          });
+            })
+          );
+          collecter.push(...pagedAnnotations);
+
           return collecter;
         },
         []
       );
-      const reviewImgFiles: File[] = reviewPagesData.map(
-        (reviewPage: ReviewPageData, index: number) =>
-          binaryToFile(
-            reviewPage.drawingData,
-            `${user?.id}-${solutionId}-${index}`
-          )
+
+      const uploadedUrls: string[] = await Promise.all(
+        reviewPagesData.map(async (reviewPage: ReviewPage, index: number) => {
+          const url: string = reviewPage.reviewLayer.imgUrl;
+
+          if (url.startsWith("https://")) {
+            return url;
+          } else {
+            const tmpFile: File = binaryToFile(
+              url,
+              `review-${user?.id}-${solutionId}-${index}`
+            );
+            const uploadedUrl: string = (await fileUploader([tmpFile]))[0];
+
+            return uploadedUrl;
+          }
+        })
       );
-      const uploadedUrls: string[] = await fileUploader(reviewImgFiles);
+
+      const uploadedBackgorundUrls: string[] = await Promise.all(
+        reviewPagesData.map(async (reviewPage: ReviewPage, index: number) => {
+          const url: string = reviewPage.reviewLayer.backgroundImgUrl;
+
+          if (url.startsWith("https://")) {
+            return url;
+          } else {
+            const tmpFile: File = binaryToFile(
+              url,
+              `review-bg-${user?.id}-${solutionId}-${index}`
+            );
+            const uploadedUrl: string = (await fileUploader([tmpFile]))[0];
+
+            return uploadedUrl;
+          }
+        })
+      );
+
       const layers: ReviewLayer[] = uploadedUrls.map(
         (url: string, index: number) => ({
           imgUrl: url,
+          backgroundImgUrl: uploadedBackgorundUrls[index],
           pageNumber: index,
         })
       );
@@ -94,7 +148,7 @@ export default function ReviewCreatePage() {
         layers,
       };
 
-      await createReviewAPI(reviewData, problemId);
+      await createReviewAPI(reviewData, Number(solutionId));
 
       alert("리뷰가 제출되었습니다.");
       router.push(`/problems/${problemId}/solutions/${solutionId}`);
@@ -110,10 +164,10 @@ export default function ReviewCreatePage() {
       <Navbar />
 
       <main className="flex-1 pt-20 pb-12 px-4 sm:px-6 lg:px-8">
-        {isLoading || !solution ? (
+        {isLoading || !solution || isReviewLoading ? (
           <div className="min-h-screen flex justify-center items-center bg-gray-50">
             <div className="text-gray-500 text-lg animate-pulse">
-              문제를 불러오는 중입니다...
+              데이터를 불러오는 중입니다...
             </div>
           </div>
         ) : (
@@ -135,6 +189,7 @@ export default function ReviewCreatePage() {
 
             <ReviewEditor
               initialSolutionImageUrls={solution.answerImgSolutions || []}
+              initialReviewDetail={review ? review : undefined}
               onSubmitReview={handleSubmitReview}
             />
           </div>

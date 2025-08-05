@@ -16,26 +16,27 @@ import {
 import Button from "./ui/button";
 import { DrawingCanvas } from "./drawing-canvas";
 import { createBlankImageDataUrl } from "@/utils/createBlankPage";
-
-export interface ReviewTextBox {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content: string;
-}
-
-export interface ReviewPageData {
-  id: string;
-  backgroundImageUrl: string;
-  drawingData: string; // Base64 string of the transparent drawing layer
-  textBoxes: ReviewTextBox[];
-}
+import { Annotation, ReviewDetailResponse, ReviewLayer } from "@/api/reviewApi";
+import { ReviewPage } from "@/app/problems/[id]/solutions/[solutionId]/page";
 
 interface ReviewEditorProps {
   initialSolutionImageUrls: string[];
-  onSubmitReview: (reviewData: ReviewPageData[]) => void;
+  initialReviewDetail?: ReviewDetailResponse;
+  onSubmitReview: (reviewData: ReviewPage[]) => void;
+}
+
+interface EditableAnnotation extends Annotation {
+  id: string;
+}
+
+interface EditableLayer extends ReviewLayer {
+  id: string;
+}
+
+interface EditablePage {
+  annotations: EditableAnnotation[];
+  reviewLayer: EditableLayer;
+  pageNumber: number;
 }
 
 type EditorMode = "select" | "draw" | "text" | "background";
@@ -48,20 +49,25 @@ const DRAWING_HEIGHT = 800;
 
 export default function ReviewEditor({
   initialSolutionImageUrls,
+  initialReviewDetail,
   onSubmitReview,
 }: ReviewEditorProps) {
-  const [reviewPages, setReviewPages] = useState<ReviewPageData[]>(() =>
-    initialSolutionImageUrls.map((url, index) => ({
-      id: `page-${index + 1}`,
-      backgroundImageUrl: url,
-      drawingData: createBlankImageDataUrl(600, 800, "transparent"),
-      textBoxes: [],
+  const [reviewPages, setReviewPages] = useState<EditablePage[]>(() =>
+    initialSolutionImageUrls.map((imgUrl, index) => ({
+      pageNumber: index,
+      annotations: [],
+      reviewLayer: {
+        id: crypto.randomUUID(),
+        pageNumber: index,
+        backgroundImgUrl: imgUrl,
+        imgUrl: createBlankImageDataUrl(600, 800, "transparent"),
+      },
     }))
   );
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
-  const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(
-    null
-  );
+  const [selectedAnnotationId, setSelectedAnnotationId] = useState<
+    string | null
+  >(null);
   const [mode, setMode] = useState<EditorMode>("select");
   const [drawingTool, setDrawingTool] = useState<DrawingTool>("pen");
   const [penColor, setPenColor] = useState<Color>("#FF0000");
@@ -77,9 +83,33 @@ export default function ReviewEditor({
   // const [resizeOffset, setResizeOffset] = useState<Point>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (initialReviewDetail) {
+      const reviewPages: EditablePage[] = initialReviewDetail.layers.map(
+        (layer) => ({
+          pageNumber: layer.pageNumber,
+          reviewLayer: {
+            ...layer,
+            id: crypto.randomUUID(),
+          },
+          annotations: initialReviewDetail.annotations
+            .filter((annotation) => annotation.pageNumber === layer.pageNumber)
+            .map((annotation) => ({
+              ...annotation,
+              id: crypto.randomUUID(),
+            })),
+        })
+      );
+      reviewPages.sort((a: EditablePage, b: EditablePage) => {
+        return a.pageNumber - b.pageNumber;
+      });
+      setReviewPages(reviewPages);
+    }
+  }, [initialReviewDetail]);
+
   const handleMouseDown = (
     e: React.MouseEvent,
-    textBoxId: string,
+    id: string,
     type: "drag" | "resize",
     handle?: string
   ) => {
@@ -88,16 +118,22 @@ export default function ReviewEditor({
     }
 
     e.stopPropagation();
-    setSelectedTextBoxId(textBoxId);
+    setSelectedAnnotationId(id);
 
-    const textBox = activePage.textBoxes.find((tb) => tb.id === textBoxId);
-    if (!textBox) {
+    const targetAnnotation = activePage.annotations.find(
+      (annotation) => annotation.id === id
+    );
+
+    if (!targetAnnotation) {
       return;
     }
 
     if (type === "drag") {
       setIsDragging(true);
-      setDragOffset({ x: e.clientX - textBox.x, y: e.clientY - textBox.y });
+      setDragOffset({
+        x: e.clientX - targetAnnotation.position.x,
+        y: e.clientY - targetAnnotation.position.y,
+      });
     } else if (type === "resize" && handle) {
       setIsResizing(true);
       setResizeHandle(handle);
@@ -123,47 +159,47 @@ export default function ReviewEditor({
           if (pIdx === activePageIndex) {
             return {
               ...page,
-              textBoxes: page.textBoxes.map((tb) => {
-                if (tb.id === selectedTextBoxId) {
+              annotations: page.annotations.map((annotation) => {
+                if (annotation.id === selectedAnnotationId) {
                   if (isDragging) {
                     let newX = (e.clientX - dragOffset.x) * scaleX;
                     let newY = (e.clientY - dragOffset.y) * scaleY;
 
                     newX = Math.max(
                       0,
-                      Math.min(newX, DRAWING_WIDTH - tb.width)
+                      Math.min(newX, DRAWING_WIDTH - annotation.width)
                     );
                     newY = Math.max(
                       0,
-                      Math.min(newY, DRAWING_HEIGHT - tb.height)
+                      Math.min(newY, DRAWING_HEIGHT - annotation.height)
                     );
                     return {
-                      ...tb,
+                      ...annotation,
                       x: newX,
                       y: newY,
                     };
                   } else if (isResizing && resizeHandle) {
-                    let newWidth = tb.width;
-                    let newHeight = tb.height;
+                    let newWidth = annotation.width;
+                    let newHeight = annotation.height;
                     const currentX = (e.clientX - containerRect.left) * scaleX;
                     const currentY = (e.clientY - containerRect.top) * scaleY;
 
                     switch (resizeHandle) {
                       case "br":
-                        newWidth = currentX - tb.x;
-                        newHeight = currentY - tb.y;
+                        newWidth = currentX - annotation.position.x;
+                        newHeight = currentY - annotation.position.y;
                         break;
                     }
                     newWidth = Math.max(50, newWidth);
                     newHeight = Math.max(30, newHeight);
                     return {
-                      ...tb,
+                      ...annotation,
                       width: newWidth,
                       height: newHeight,
                     };
                   }
                 }
-                return tb;
+                return annotation;
               }),
             };
           }
@@ -173,7 +209,7 @@ export default function ReviewEditor({
     },
     [
       activePageIndex,
-      selectedTextBoxId,
+      selectedAnnotationId,
       isDragging,
       isResizing,
       dragOffset,
@@ -203,13 +239,13 @@ export default function ReviewEditor({
         pIdx === activePageIndex
           ? {
               ...page,
-              textBoxes: page.textBoxes.map((tb) =>
-                tb.id === id
+              annotations: page.annotations.map((annotation) =>
+                annotation.id === id
                   ? {
-                      ...tb,
+                      ...annotation,
                       content,
                     }
-                  : tb
+                  : annotation
               ),
             }
           : page
@@ -217,14 +253,19 @@ export default function ReviewEditor({
     );
   };
 
-  const addTextBox = (x: number, y: number) => {
-    const newTextBox: ReviewTextBox = {
-      id: `textbox-${Date.now()}`,
-      x: x,
-      y: y,
+  const addAnnotation = (x: number, y: number) => {
+    const newId: string = crypto.randomUUID();
+    const newAnnotation: EditableAnnotation = {
+      id: newId,
+      position: {
+        x,
+        y,
+      },
       width: 200,
       height: 50,
       content: "새 텍스트",
+      imageUrl: "",
+      pageNumber: activePageIndex,
     };
 
     setReviewPages((prevPages) =>
@@ -232,29 +273,31 @@ export default function ReviewEditor({
         pIdx === activePageIndex
           ? {
               ...page,
-              textBoxes: [...page.textBoxes, newTextBox],
+              annotations: [...page.annotations, newAnnotation],
             }
           : page
       )
     );
-    setSelectedTextBoxId(newTextBox.id);
+    setSelectedAnnotationId(newId);
     setMode("select");
   };
 
-  const deleteTextBox = (id: string) => {
+  const deleteAnnotation = (id: string) => {
     setReviewPages((prevPages) =>
       prevPages.map((page, pIdx) =>
         pIdx === activePageIndex
           ? {
               ...page,
-              textBoxes: page.textBoxes.filter((tb) => tb.id !== id),
+              annotations: page.annotations.filter(
+                (annotation) => annotation.id !== id
+              ),
             }
           : page
       )
     );
 
-    if (selectedTextBoxId === id) {
-      setSelectedTextBoxId(null);
+    if (selectedAnnotationId === id) {
+      setSelectedAnnotationId(null);
     }
   };
 
@@ -264,7 +307,10 @@ export default function ReviewEditor({
         pIdx === activePageIndex
           ? {
               ...page,
-              drawingData: dataUrl,
+              reviewLayer: {
+                ...page.reviewLayer,
+                imgUrl: dataUrl,
+              },
             }
           : page
       )
@@ -272,11 +318,15 @@ export default function ReviewEditor({
   };
 
   const addNewBlankPage = () => {
-    const newPage: ReviewPageData = {
-      id: `page-${Date.now()}`,
-      backgroundImageUrl: createBlankImageDataUrl(600, 800),
-      drawingData: "",
-      textBoxes: [],
+    const newPage: EditablePage = {
+      reviewLayer: {
+        id: crypto.randomUUID(),
+        backgroundImgUrl: createBlankImageDataUrl(600, 800),
+        imgUrl: "",
+        pageNumber: reviewPages.length,
+      },
+      annotations: [],
+      pageNumber: reviewPages.length,
     };
 
     setReviewPages((prev) => [...prev, newPage]);
@@ -313,7 +363,10 @@ export default function ReviewEditor({
             pIdx === activePageIndex
               ? {
                   ...page,
-                  backgroundImageUrl: event.target?.result as string,
+                  reviewLayer: {
+                    ...page.reviewLayer,
+                    backgroundImgUrl: event.target?.result as string,
+                  },
                 }
               : page
           )
@@ -332,9 +385,9 @@ export default function ReviewEditor({
       const x = (e.clientX - containerRect.left) * scaleX;
       const y = (e.clientY - containerRect.top) * scaleY;
 
-      addTextBox(x, y);
+      addAnnotation(x, y);
     } else if (mode === "select") {
-      setSelectedTextBoxId(null);
+      setSelectedAnnotationId(null);
     }
   };
 
@@ -364,7 +417,15 @@ export default function ReviewEditor({
     if (confirmClear) {
       setReviewPages((prevPages) =>
         prevPages.map((page, pIdx) =>
-          pIdx === activePageIndex ? { ...page, drawingData: "" } : page
+          pIdx === activePageIndex
+            ? {
+                ...page,
+                reviewLayer: {
+                  ...page.reviewLayer,
+                  imgUrl: createBlankImageDataUrl(600, 800, "transparent"),
+                },
+              }
+            : page
         )
       );
     }
@@ -381,7 +442,7 @@ export default function ReviewEditor({
           <div className="flex flex-wrap gap-2 justify-center">
             {reviewPages.map((page, index) => (
               <div
-                key={page.id}
+                key={page.pageNumber}
                 className={`relative w-24 h-32 border rounded-md overflow-hidden cursor-pointer
                   group ${
                     activePageIndex === index
@@ -394,15 +455,15 @@ export default function ReviewEditor({
                 }}
               >
                 <Image
-                  src={page.backgroundImageUrl || "/placeholder.svg"}
+                  src={page.reviewLayer.backgroundImgUrl || "/placeholder.svg"}
                   alt={`리뷰 페이지 ${index + 1}`}
                   layout="fill"
                   objectFit="cover"
                   className="rounded-md"
                 />
-                {page.drawingData && (
+                {page.reviewLayer.imgUrl && (
                   <Image
-                    src={page.drawingData || "/placeholder.svg"}
+                    src={page.reviewLayer.imgUrl || "/placeholder.svg"}
                     alt="drawing preview"
                     layout="fill"
                     objectFit="cover"
@@ -456,7 +517,10 @@ export default function ReviewEditor({
                   className={`flex items-center gap-1 ${
                     mode === "background" ? "" : "bg-transparent"
                   }`}
-                  onClick={() => setMode("background")}
+                  onClick={() => {
+                    setMode("background");
+                    document.getElementById("background-upload")?.click();
+                  }}
                 >
                   <ImageIcon className="h-4 w-4" />
                   배경 변경
@@ -570,14 +634,16 @@ export default function ReviewEditor({
             onClick={handleImageContainerClick}
           >
             <Image
-              src={activePage.backgroundImageUrl || "/placeholder.svg"}
+              src={
+                activePage.reviewLayer.backgroundImgUrl || "/placeholder.svg"
+              }
               alt={`Review Background ${activePageIndex + 1}`}
               layout="fill"
               objectFit="contain"
               className="z-0"
             />
             <DrawingCanvas
-              initialDrawingData={activePage.drawingData}
+              initialDrawingData={activePage.reviewLayer.imgUrl}
               onDrawingChange={handleDrawingChange}
               width={DRAWING_WIDTH}
               height={DRAWING_HEIGHT}
@@ -588,20 +654,20 @@ export default function ReviewEditor({
             />
 
             {/* Text Box */}
-            {activePage.textBoxes.map((textBox) => (
+            {activePage.annotations.map((annotation) => (
               <div
-                key={textBox.id}
+                key={annotation.id}
                 className={`absolute bg-yellow-100 opacity-70 border rounded p-2
                   text-sm text-gray-800 resize overflow-hidden ${
-                    selectedTextBoxId === textBox.id
+                    selectedAnnotationId === annotation.id
                       ? "border-blue-500 ring-2 ring-blue-500"
                       : "border-yellow-400"
                   }`}
                 style={{
-                  left: textBox.x,
-                  top: textBox.y,
-                  width: textBox.width,
-                  height: textBox.height,
+                  left: annotation.position.x,
+                  top: annotation.position.y,
+                  width: annotation.width,
+                  height: annotation.height,
                   cursor:
                     mode === "select" && isDragging
                       ? "grabbing"
@@ -609,7 +675,7 @@ export default function ReviewEditor({
                       ? "grab"
                       : "default",
                 }}
-                onMouseDown={(e) => handleMouseDown(e, textBox.id, "drag")}
+                onMouseDown={(e) => handleMouseDown(e, annotation.id, "drag")}
               >
                 <div
                   contentEditable
@@ -617,44 +683,45 @@ export default function ReviewEditor({
                   className="w-full h-full outline-none"
                   onBlur={(e) =>
                     handleTextBoxContentChange(
-                      textBox.id,
+                      annotation.id,
                       e.currentTarget.innerText
                     )
                   }
                   onClick={(e) => {
                     e.stopPropagation();
                     if (mode !== "select") {
-                      setSelectedTextBoxId(textBox.id);
+                      setSelectedAnnotationId(annotation.id);
                       setMode("select");
                     }
                   }}
                 >
-                  {textBox.content}
+                  {annotation.content}
                 </div>
-                {selectedTextBoxId === textBox.id && mode === "select" && (
-                  <>
-                    {/* Resize handle */}
-                    <div
-                      className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-300
+                {selectedAnnotationId === annotation.id &&
+                  mode === "select" && (
+                    <>
+                      {/* Resize handle */}
+                      <div
+                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-300
                       rounded-full cursor-nwse-resize z-20"
-                      onMouseDown={(e) =>
-                        handleMouseDown(e, textBox.id, "resize", "br")
-                      }
-                    />
+                        onMouseDown={(e) =>
+                          handleMouseDown(e, annotation.id, "resize", "br")
+                        }
+                      />
 
-                    {/* Delete Button */}
-                    <button
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 z-20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteTextBox(textBox.id);
-                      }}
-                      aria-label="텍스트 박스 삭제"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  </>
-                )}
+                      {/* Delete Button */}
+                      <button
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 z-20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteAnnotation(annotation.id);
+                        }}
+                        aria-label="텍스트 박스 삭제"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
               </div>
             ))}
           </div>

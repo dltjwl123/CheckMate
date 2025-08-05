@@ -6,7 +6,12 @@ import {
   getSolutionDetailAPI,
   ProblemDetailResponse,
 } from "@/api/problemApi";
-import { Annotation, getReviewDetailAPI, ReviewLayer } from "@/api/reviewApi";
+import {
+  Annotation,
+  deleteReviewAPI,
+  getReviewDetailAPI,
+  ReviewLayer,
+} from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
@@ -18,6 +23,7 @@ import {
   BookOpen,
   Bot,
   Check,
+  Edit,
   MessageSquare,
   MessagesSquare,
   User,
@@ -26,9 +32,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-interface ReviewPage {
+export interface ReviewPage {
   annotations: Annotation[];
   reviewLayer: ReviewLayer;
   pageNumber: number;
@@ -64,6 +70,26 @@ export default function SolutionsDetailPage() {
   const [reviewPages, setReviewPages] = useState<ReviewPage[] | null>(null);
   const [activeOfficialImageIndex, setActiveOfficialImageIndex] =
     useState<number>(0);
+
+  const handleDeleteReview = async () => {
+    if (!selectedReviewId) {
+      return;
+    }
+
+    const result: boolean = confirm("정말로 리뷰를 삭제하시겠습니까?");
+
+    if (!result) {
+      return;
+    }
+
+    try {
+      await deleteReviewAPI(selectedReviewId);
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("리뷰 삭제에 실패했습니다.");
+    }
+  };
 
   useEffect(() => {
     const getProblemDetail = async () => {
@@ -109,11 +135,13 @@ export default function SolutionsDetailPage() {
         const nullArray: null[] = Array(userRievewNumber).fill(null);
         setReviewDataList(nullArray);
         setSelectedReviewId(
-          solutionDetail.userReviewSummaries[0].id !== undefined
+          solutionDetail.userReviewSummaries.length > 0 &&
+            solutionDetail.userReviewSummaries[0].id !== undefined
             ? solutionDetail.userReviewSummaries[0].id
             : null
         );
-      } catch {
+      } catch (error) {
+        console.error(error);
         alert("풀이 불러오기에 실패하였습니다.");
       } finally {
         setIsSolutionLoading(false);
@@ -172,6 +200,7 @@ export default function SolutionsDetailPage() {
   useEffect(() => {
     if (reviewDataList[reviewrIndex]) {
       setReviewPages(reviewDataList[reviewrIndex].reviewPages);
+      setSelectedReviewId(reviewDataList[reviewrIndex].id);
     }
   }, [reviewDataList, reviewrIndex]);
 
@@ -316,7 +345,7 @@ export default function SolutionsDetailPage() {
                     {solution.answerImgSolutions.map((img, index) => (
                       <div
                         key={index}
-                        className={`relative w-20 h-20 border
+                        className={`relative w-40 aspect-[3/4] border
                         rounded-md overflow-hidden cursor-pointer
                         ${
                           activeSubmittedImageIndex === index
@@ -329,7 +358,7 @@ export default function SolutionsDetailPage() {
                           src={img || "/placeholder.svg"}
                           alt={`Solution Page ${index + 1}`}
                           fill
-                          style={{ objectFit: "cover" }}
+                          style={{ objectFit: "contain" }}
                           className="rounded-md"
                         />
                         <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
@@ -340,6 +369,7 @@ export default function SolutionsDetailPage() {
                   </div>
                 )}
 
+              {/* Answer Main */}
               <div className="bg-white rounded-md overflow-hidden border border-gray-200">
                 <div className="text-center text-sm text-gray-500 py-2 bg-gray-50 border-b border-gray-200">
                   {solution.username}님의 풀이 ({solution.id})
@@ -349,18 +379,20 @@ export default function SolutionsDetailPage() {
                       solution.answerImgSolutions.length
                     })`}
                 </div>
-                <div className="flex justify-center p-4">
-                  <Image
-                    src={
-                      solution.answerImgSolutions?.[
-                        activeSubmittedImageIndex
-                      ] || "/placeholder.svg"
-                    }
-                    alt={`Solution Page ${activeSubmittedImageIndex + 1}`}
-                    width={600}
-                    height={800}
-                    className="max-w-full h-auto rounded shadow-sm"
-                  />
+                <div className="flex justify-center">
+                  <div className="relative w-[600px] h-[800px] bg-white rounded shadow-sm overflow-hidden">
+                    <Image
+                      src={
+                        solution.answerImgSolutions?.[
+                          activeSubmittedImageIndex
+                        ] || "/placeholder.svg"
+                      }
+                      alt={`Solution Page ${activeSubmittedImageIndex + 1}`}
+                      fill
+                      className="object-contain"
+                      style={{ objectPosition: "center" }}
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -424,12 +456,12 @@ export default function SolutionsDetailPage() {
               {problem.problemImgSolutions &&
               problem.problemImgSolutions.length > 0 ? (
                 <>
-                  {/* 썸네일 목록 + 메인 이미지 렌더링 (앞서 만든 코드 그대로 삽입) */}
+                  {/* Preview */}
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
                     {problem.problemImgSolutions.map((imgUrl, index) => (
                       <div
                         key={index}
-                        className={`relative w-20 h-20 border rounded-md overflow-hidden cursor-pointer ${
+                        className={`relative w-40 aspect-[3/4] border rounded-md overflow-hidden cursor-pointer ${
                           activeOfficialImageIndex === index
                             ? "border-blue-500 ring-2 ring-blue-500"
                             : "border-gray-200"
@@ -440,7 +472,7 @@ export default function SolutionsDetailPage() {
                           src={imgUrl || "/placeholder.svg"}
                           alt={`공식 풀이 썸네일 ${index + 1}`}
                           fill
-                          style={{ objectFit: "cover" }}
+                          style={{ objectFit: "contain" }}
                           className="rounded-md"
                         />
                         <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
@@ -455,18 +487,22 @@ export default function SolutionsDetailPage() {
                       공식 풀이 이미지 (페이지 {activeOfficialImageIndex + 1} /{" "}
                       {problem.problemImgSolutions.length})
                     </div>
-                    <div className="flex justify-center p-4">
-                      <Image
-                        src={
-                          problem.problemImgSolutions[
-                            activeOfficialImageIndex
-                          ] || "/placeholder.svg"
-                        }
-                        alt={`공식 풀이 페이지 ${activeOfficialImageIndex + 1}`}
-                        width={600}
-                        height={800}
-                        className="max-w-full h-auto rounded shadow-sm"
-                      />
+                    <div className="flex justify-center">
+                      <div className="relative w-[600px] h-[800px] bg-white rounded shadow-sm overflow-hidden">
+                        <Image
+                          src={
+                            problem.problemImgSolutions[
+                              activeOfficialImageIndex
+                            ] || "/placeholder.svg"
+                          }
+                          alt={`공식 풀이 페이지 ${
+                            activeOfficialImageIndex + 1
+                          }`}
+                          fill
+                          className="object-contain"
+                          style={{ objectPosition: "center" }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </>
@@ -529,7 +565,7 @@ export default function SolutionsDetailPage() {
                       {reviewPages.map((reviewPage, index) => (
                         <div
                           key={reviewPage.pageNumber}
-                          className={`relative w-20 h-20 border rounded-md overflow-hidden cursor-pointer
+                          className={`relative w-40 aspect-[3/4] border rounded-md overflow-hidden cursor-pointer
                   ${
                     activeReviewPageIndex === index
                       ? "border-blue-500 ring-2 ring-blue-500"
@@ -539,12 +575,27 @@ export default function SolutionsDetailPage() {
                         >
                           <Image
                             src={
+                              reviewPage.reviewLayer.backgroundImgUrl ||
+                              "/placeholder.svg"
+                            }
+                            alt={`Review Page Background ${index + 1}`}
+                            fill
+                            style={{
+                              objectFit: "contain",
+                            }}
+                            className="rounded-md"
+                          />
+                          <Image
+                            src={
                               reviewPage.reviewLayer.imgUrl ||
                               "/placeholder.svg"
                             }
                             alt={`Review Page ${index + 1}`}
                             fill
-                            style={{ objectFit: "cover" }}
+                            style={{
+                              objectFit: "contain",
+                              objectPosition: "top center",
+                            }}
                             className="rounded-md"
                           />
                           <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
@@ -569,53 +620,60 @@ export default function SolutionsDetailPage() {
                               .length
                           })`}
                       </div>
-                      <div className="flex justify-center p-4">
+
+                      <div className="flex justify-center">
                         {/* Background Image */}
-                        <Image
-                          src={
-                            reviewPages[activeReviewPageIndex].reviewLayer
-                              .imgUrl || "/placeholder.svg"
-                          }
-                          alt={`Review Page ${activeReviewPageIndex + 1}`}
-                          width={600}
-                          height={800}
-                          className="max-w-full h-auto rounded shadow-sm"
-                        />
-                      </div>
-                      {/* Review Layer */}
-                      {reviewPages[activeReviewPageIndex] && (
-                        <Image
-                          src={
-                            reviewPages[activeReviewPageIndex].reviewLayer
-                              .imgUrl || "/placeholder.svg"
-                          }
-                          alt={`Drawing Data for Review Page ${
-                            activeReviewPageIndex + 1
-                          }`}
-                          width={600}
-                          height={800}
-                          className="absolute top-4 left-1/2 -translate-x-1/2 max-w-full h-auto rounded"
-                          style={{ pointerEvents: "none" }}
-                        />
-                      )}
-                      {/* Text Boxes */}
-                      {reviewPages[activeReviewPageIndex].annotations.map(
-                        (annotation, index) => (
-                          <div
-                            key={index}
-                            className="absolute bg-yellow-100 bg-opacity-70
+                        <div className="relative w-[600px] h-[800px] bg-white rounded shadow-sm overflow-hidden">
+                          <Image
+                            src={
+                              reviewPages[activeReviewPageIndex].reviewLayer
+                                .backgroundImgUrl || "/placeholder.svg"
+                            }
+                            alt={`Review Page ${activeReviewPageIndex + 1}`}
+                            fill
+                            className="object-contain"
+                            style={{ objectPosition: "center" }}
+                          />
+
+                          {/* Review Layer */}
+                          {reviewPages[activeReviewPageIndex] && (
+                            <Image
+                              src={
+                                reviewPages[activeReviewPageIndex].reviewLayer
+                                  .imgUrl || "/placeholder.svg"
+                              }
+                              alt={`Drawing Data for Review Page ${
+                                activeReviewPageIndex + 1
+                              }`}
+                              fill
+                              className="object-contain"
+                              style={{
+                                pointerEvents: "none",
+                                objectPosition: "center",
+                              }}
+                            />
+                          )}
+
+                          {/* Text Boxes */}
+                          {reviewPages[activeReviewPageIndex].annotations.map(
+                            (annotation, index) => (
+                              <div
+                                key={index}
+                                className="absolute bg-yellow-100 bg-opacity-70
                 border border-yellow-400 rounded p-2 text-sm text-gray-800 overflow-hidden"
-                            style={{
-                              left: `${annotation.position.x}px`,
-                              top: `${annotation.position.y}px`,
-                              width: `${annotation.width}px`,
-                              height: `${annotation.height}px`,
-                            }}
-                          >
-                            {annotation.content}
-                          </div>
-                        )
-                      )}
+                                style={{
+                                  left: `${annotation.position.x}px`,
+                                  top: `${annotation.position.y}px`,
+                                  width: `${annotation.width}px`,
+                                  height: `${annotation.height}px`,
+                                }}
+                              >
+                                {annotation.content}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center text-gray-500 py-8">
@@ -629,11 +687,28 @@ export default function SolutionsDetailPage() {
                 </div>
               )}
             </CardContent>
+            <div className="mb-4 mr-8 text-right space-x-2">
+              <Link
+                href={`/problems/${problemId}/solutions/${solutionId}/review?reviewId=${selectedReviewId}`}
+              >
+                <Button className="flex items-center gap-2 ml-auto">
+                  <Edit className="h-4 w-4" />
+                  리뷰 수정
+                </Button>
+              </Link>
+              <Button
+                onClick={handleDeleteReview}
+                className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
+              >
+                <X className="h-4 w-4" />
+                리뷰 삭제
+              </Button>
+            </div>
           </Card>
         )}
 
         {/* Review Button */}
-        <div className="mt-8 text-right">
+        <div className="mt-8 text-right space-x-2">
           <Link href={`/problems/${problemId}/solutions/${solutionId}/review`}>
             <Button className="flex items-center gap-2 ml-auto">
               <MessageSquare className="h-4 w-4" />

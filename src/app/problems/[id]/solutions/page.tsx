@@ -78,7 +78,9 @@ export default function SolutionPage() {
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                    <span>{problem.year}</span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {problem.year}
+                    </span>
                     <span>.</span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -183,7 +185,9 @@ export default function SolutionPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right text-sm text-gray-500">
-                        {answer.submittedAt ? getRelativeTime(answer.submittedAt) : "불명"}
+                        {answer.submittedAt
+                          ? getRelativeTime(answer.submittedAt)
+                          : "불명"}
                       </TableCell>
                     </TableRow>
                   ))}
