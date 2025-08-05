@@ -94,7 +94,7 @@ export default function ReviewCreatePage() {
         layers,
       };
 
-      await createReviewAPI(reviewData, problemId);
+      await createReviewAPI(reviewData, Number(solutionId));
 
       alert("리뷰가 제출되었습니다.");
       router.push(`/problems/${problemId}/solutions/${solutionId}`);
