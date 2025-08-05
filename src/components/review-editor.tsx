@@ -363,7 +363,10 @@ export default function ReviewEditor({
             pIdx === activePageIndex
               ? {
                   ...page,
-                  backgroundImageUrl: event.target?.result as string,
+                  reviewLayer: {
+                    ...page.reviewLayer,
+                    backgroundImgUrl: event.target?.result as string,
+                  },
                 }
               : page
           )
