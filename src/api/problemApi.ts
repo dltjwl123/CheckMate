@@ -167,7 +167,7 @@ export const submitUserSolution = async (
   reqBody: submitUserSolutionRequest
 ) => {
   try {
-    await axiosInstance.post(`answers/submit-test-list`, reqBody);
+    await axiosInstance.post(`answers/submit`, reqBody);
   } catch (error) {
     apiErrorHandler(error);
   }
