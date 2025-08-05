@@ -24,12 +24,6 @@ export default function MySolutionsPage() {
   const [myAnswers, setMyAnswers] = useState<MyAnswerSummaryListResponse>([]);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.replace("/login");
-    }
-  }, [router, isLoggedIn]);
-
-  useEffect(() => {
     const getAnswerList = async () => {
       try {
         const data = await getMyAnswerListAPI();

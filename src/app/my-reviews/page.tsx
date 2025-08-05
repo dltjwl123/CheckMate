@@ -26,12 +26,6 @@ export default function MyReviewPage() {
   );
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.replace("/login");
-    }
-  }, [isLoggedIn, router]);
-
-  useEffect(() => {
     const getMyReviewList = async () => {
       try {
         const data = await getMyReviewListAPI();
