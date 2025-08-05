@@ -3,7 +3,7 @@
 import {
   AnswerSummary,
   getMyAnswerListAPI,
-  MyAnswerSummaryList,
+  MyAnswerSummaryListResponse,
 } from "@/api/userApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
@@ -25,7 +25,7 @@ import { useEffect, useState } from "react";
 export default function MySolutionsPage() {
   const { user, isLoggedIn } = useAuth();
   const router = useRouter();
-  const [myAnswers, setMyAnswers] = useState<MyAnswerSummaryList>([]);
+  const [myAnswers, setMyAnswers] = useState<MyAnswerSummaryListResponse>([]);
 
   useEffect(() => {
     if (!isLoggedIn) {

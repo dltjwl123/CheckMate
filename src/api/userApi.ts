@@ -33,12 +33,23 @@ export interface AnswerSummary {
   status: AnswerStatus;
 }
 
-export type MyAnswerSummaryList = AnswerSummary[];
+export type MyAnswerSummaryListResponse = AnswerSummary[];
+
+export interface ReviewSummary {
+  reviewId: number;
+  problemId: number;
+  answerId: number;
+  targetName: string;
+  problemTitle: string;
+  createdAt: string;
+}
+
+export type myReviewSummaryListResponse = ReviewSummary[];
 
 export const getMyAnswerListAPI = async () => {
   try {
     const res = await axiosInstance.get(`user/my-page/answer-data`);
-    const answerList: MyAnswerSummaryList = res.data;
+    const answerList: MyAnswerSummaryListResponse = res.data;
 
     return answerList;
   } catch (error) {
@@ -46,20 +57,10 @@ export const getMyAnswerListAPI = async () => {
   }
 };
 
-export type ReviewDataResponse = {
-  targetName: string;
-  problemTitle: string;
-  createdAt: string;
-}[];
-
-export const getReviewDataAPI = async (userId: number) => {
+export const getMyReviewListAPI = async () => {
   try {
-    const res = await axiosInstance.get(`user/my-page/review-data`, {
-      params: {
-        userId,
-      },
-    });
-    const reviewList: ReviewDataResponse = res.data;
+    const res = await axiosInstance.get(`user/my-page/review-data`);
+    const reviewList: myReviewSummaryListResponse = res.data;
 
     return reviewList;
   } catch (error) {
