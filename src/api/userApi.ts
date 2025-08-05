@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { apiErrorHandler } from "@/utils/errorHandler";
+import axios from "axios";
 
 export type UserType = "STUDENT" | "TEACHER";
 
@@ -10,6 +11,30 @@ export interface UserProfile {
   userType: UserType;
   profileImageUrl: string;
 }
+
+export type AnswerStatus = "REVIEWED" | "PENDING";
+
+export interface AnswerSummary {
+  answerId: number;
+  problemId: number;
+  problemTitle: string | null;
+  likeCount: number;
+  submittedAt: string; // ISO
+  status: AnswerStatus;
+}
+
+export type MyAnswerSummaryListResponse = AnswerSummary[];
+
+export interface ReviewSummary {
+  reviewId: number;
+  problemId: number;
+  answerId: number;
+  targetName: string;
+  problemTitle: string;
+  createdAt: string;
+}
+
+export type myReviewSummaryListResponse = ReviewSummary[];
 
 export const getUserDataAPI = async () => {
   try {
@@ -22,24 +47,21 @@ export const getUserDataAPI = async () => {
   }
 };
 
-export type AnswerStatus = "REVIEWED" | "PENDING";
-
-export interface AnswerDataResponse {
-  answerId: number;
-  problemTitle: string | null;
-  likeCount: number;
-  submittedAt: string; // ISO
-  status: AnswerStatus;
-}
-
-export const getAnswerDataAPI = async (userid: number) => {
+export const getMeInternalAPI = async () => {
   try {
-    const res = await axiosInstance.get(`user/my-page/answer-data`, {
-      params: {
-        userid,
-      },
-    });
-    const answerList: AnswerDataResponse = res.data;
+    const res = await axios.get("internal/me");
+    const userProfile: UserProfile = res.data;
+
+    return userProfile;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const getMyAnswerListAPI = async () => {
+  try {
+    const res = await axiosInstance.get(`user/my-page/answer-data`);
+    const answerList: MyAnswerSummaryListResponse = res.data;
 
     return answerList;
   } catch (error) {
@@ -47,20 +69,10 @@ export const getAnswerDataAPI = async (userid: number) => {
   }
 };
 
-export type ReviewDataResponse = {
-  targetName: string;
-  problemTitle: string;
-  createdAt: string;
-}[];
-
-export const getReviewDataAPI = async (userId: number) => {
+export const getMyReviewListAPI = async () => {
   try {
-    const res = await axiosInstance.get(`user/my-page/review-data`, {
-      params: {
-        userId,
-      },
-    });
-    const reviewList: ReviewDataResponse = res.data;
+    const res = await axiosInstance.get(`user/my-page/review-data`);
+    const reviewList: myReviewSummaryListResponse = res.data;
 
     return reviewList;
   } catch (error) {

@@ -10,7 +10,6 @@ import Button from "@/components/ui/button";
 import Image from "next/image";
 import {
   getProblemDetailAPI,
-  getSolutionDetailAPI,
   ProblemDetailResponse,
   submitUserSolution,
 } from "@/api/problemApi";
@@ -24,7 +23,7 @@ function Problem() {
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
+  // const [isSolutionLoading, setIsSolutionLoading] = useState<boolean>(false);
   const [solutionImages, setSolutionImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -54,35 +53,35 @@ function Problem() {
   }, [problemId]);
 
   //fetch last solution data
-  useEffect(() => {
-    const fetchLastSolution = async () => {
-      if (!problem) {
-        return;
-      }
-      const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
+  // useEffect(() => {
+  //   const fetchLastSolution = async () => {
+  //     if (!problem) {
+  //       return;
+  //     }
+  //     const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
 
-      if (!lastSolutionId) {
-        return;
-      }
+  //     if (!lastSolutionId) {
+  //       return;
+  //     }
 
-      setIsSolutionLoading(true);
-      try {
-        const data = await getSolutionDetailAPI(lastSolutionId);
+  //     setIsSolutionLoading(true);
+  //     try {
+  //       const data = await getSolutionDetailAPI(lastSolutionId);
 
-        if (!data) {
-          throw "error";
-        }
+  //       if (!data) {
+  //         throw "error";
+  //       }
 
-        setSolutionImages(data.answerImgSolutions);
-      } catch {
-        alert("내 풀이 불러오기에 실패하였습니다");
-      } finally {
-        setIsSolutionLoading(false);
-      }
-    };
+  //       setSolutionImages(data.answerImgSolutions);
+  //     } catch {
+  //       alert("내 풀이 불러오기에 실패하였습니다");
+  //     } finally {
+  //       setIsSolutionLoading(false);
+  //     }
+  //   };
 
-    fetchLastSolution();
-  }, [problem]);
+  //   fetchLastSolution();
+  // }, [problem]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -145,7 +144,7 @@ function Problem() {
     }
   };
 
-  if (isLoading || !problem || isSolutionLoading) {
+  if (isLoading || !problem) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-50">
         <div className="text-gray-500 text-lg animate-pulse">
@@ -184,7 +183,9 @@ function Problem() {
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <span>{problem!.year}</span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {problem.year}
+                    </span>
                     <span>.</span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
