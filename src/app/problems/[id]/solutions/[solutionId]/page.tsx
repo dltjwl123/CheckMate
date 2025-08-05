@@ -686,18 +686,20 @@ export default function SolutionsDetailPage() {
                 </div>
               )}
             </CardContent>
+            <div className="mb-4 mr-8 text-right space-x-2">
+              <Button
+                onClick={handleDeleteReview}
+                className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
+              >
+                <X className="h-4 w-4" />
+                리뷰 삭제
+              </Button>
+            </div>
           </Card>
         )}
 
         {/* Review Button */}
         <div className="mt-8 text-right space-x-2">
-          <Button
-            onClick={handleDeleteReview}
-            className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
-          >
-            <X className="h-4 w-4" />
-            리뷰 삭제
-          </Button>
           <Link href={`/problems/${problemId}/solutions/${solutionId}/review`}>
             <Button className="flex items-center gap-2 ml-auto">
               <MessageSquare className="h-4 w-4" />
