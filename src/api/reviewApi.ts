@@ -24,6 +24,7 @@ export type ReviewerType = "STUDENT" | "TEACHER";
 
 export interface ReviewLayer {
   imgUrl: string;
+  backgroundImgUrl: string;
   pageNumber: number;
 }
 
