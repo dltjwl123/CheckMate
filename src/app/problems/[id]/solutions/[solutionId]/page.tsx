@@ -83,9 +83,7 @@ export default function SolutionsDetailPage() {
 
     try {
       await deleteReviewAPI(selectedReviewId);
-      setSelectedReviewId(null);
-      setReviewDataList([]);
-      setReviewPages(null);
+      window.location.reload();
     } catch (error) {
       console.error(error);
       alert("리뷰 삭제에 실패했습니다.");
