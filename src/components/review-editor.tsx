@@ -159,7 +159,7 @@ export default function ReviewEditor({
           if (pIdx === activePageIndex) {
             return {
               ...page,
-              annotations: page.annotations.map((annotation, index) => {
+              annotations: page.annotations.map((annotation) => {
                 if (annotation.id === selectedAnnotationId) {
                   if (isDragging) {
                     let newX = (e.clientX - dragOffset.x) * scaleX;
