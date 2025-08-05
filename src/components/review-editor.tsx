@@ -64,7 +64,6 @@ export default function ReviewEditor({
       },
     }))
   );
-  console.log("reviewPages:", reviewPages);
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<
     string | null
