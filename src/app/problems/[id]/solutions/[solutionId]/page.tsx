@@ -581,7 +581,9 @@ export default function SolutionsDetailPage() {
                             }
                             alt={`Review Page Background ${index + 1}`}
                             fill
-                            style={{ objectFit: "contain" }}
+                            style={{
+                              objectFit: "contain",
+                            }}
                             className="rounded-md"
                           />
                           <Image
@@ -591,7 +593,10 @@ export default function SolutionsDetailPage() {
                             }
                             alt={`Review Page ${index + 1}`}
                             fill
-                            style={{ objectFit: "contain" }}
+                            style={{
+                              objectFit: "contain",
+                              objectPosition: "top center",
+                            }}
                             className="rounded-md"
                           />
                           <span className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 rounded-tl-md">
