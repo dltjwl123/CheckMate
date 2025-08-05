@@ -6,7 +6,12 @@ import {
   getSolutionDetailAPI,
   ProblemDetailResponse,
 } from "@/api/problemApi";
-import { Annotation, getReviewDetailAPI, ReviewLayer } from "@/api/reviewApi";
+import {
+  Annotation,
+  deleteReviewAPI,
+  getReviewDetailAPI,
+  ReviewLayer,
+} from "@/api/reviewApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
@@ -26,9 +31,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-interface ReviewPage {
+export interface ReviewPage {
   annotations: Annotation[];
   reviewLayer: ReviewLayer;
   pageNumber: number;
@@ -64,6 +69,25 @@ export default function SolutionsDetailPage() {
   const [reviewPages, setReviewPages] = useState<ReviewPage[] | null>(null);
   const [activeOfficialImageIndex, setActiveOfficialImageIndex] =
     useState<number>(0);
+
+  const handleDeleteReview = async () => {
+    if (!selectedReviewId) {
+      return;
+    }
+
+    const result: boolean = confirm("정말로 리뷰를 삭제하시겠습니까?");
+
+    if (!result) {
+      return;
+    }
+
+    try {
+      await deleteReviewAPI(selectedReviewId);
+    } catch (error) {
+      console.error(error);
+      alert("리뷰 삭제에 실패했습니다.");
+    }
+  };
 
   useEffect(() => {
     const getProblemDetail = async () => {
@@ -633,7 +657,14 @@ export default function SolutionsDetailPage() {
         )}
 
         {/* Review Button */}
-        <div className="mt-8 text-right">
+        <div className="mt-8 text-right space-x-2">
+          <Button
+            onClick={handleDeleteReview}
+            className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
+          >
+            <X className="h-4 w-4" />
+            리뷰 삭제
+          </Button>
           <Link href={`/problems/${problemId}/solutions/${solutionId}/review`}>
             <Button className="flex items-center gap-2 ml-auto">
               <MessageSquare className="h-4 w-4" />
