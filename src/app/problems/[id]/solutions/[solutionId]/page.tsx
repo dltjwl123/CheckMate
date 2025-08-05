@@ -83,6 +83,9 @@ export default function SolutionsDetailPage() {
 
     try {
       await deleteReviewAPI(selectedReviewId);
+      setSelectedReviewId(null);
+      setReviewDataList([]);
+      setReviewPages(null);
     } catch (error) {
       console.error(error);
       alert("리뷰 삭제에 실패했습니다.");
@@ -133,11 +136,13 @@ export default function SolutionsDetailPage() {
         const nullArray: null[] = Array(userRievewNumber).fill(null);
         setReviewDataList(nullArray);
         setSelectedReviewId(
-          solutionDetail.userReviewSummaries[0].id !== undefined
+          solutionDetail.userReviewSummaries.length > 0 &&
+            solutionDetail.userReviewSummaries[0].id !== undefined
             ? solutionDetail.userReviewSummaries[0].id
             : null
         );
-      } catch {
+      } catch (error) {
+        console.error(error);
         alert("풀이 불러오기에 실패하였습니다.");
       } finally {
         setIsSolutionLoading(false);
