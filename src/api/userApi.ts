@@ -24,22 +24,21 @@ export const getUserDataAPI = async () => {
 
 export type AnswerStatus = "REVIEWED" | "PENDING";
 
-export interface AnswerDataResponse {
+export interface AnswerSummary {
   answerId: number;
+  problemId: number;
   problemTitle: string | null;
   likeCount: number;
   submittedAt: string; // ISO
   status: AnswerStatus;
 }
 
-export const getAnswerDataAPI = async (userid: number) => {
+export type MyAnswerSummaryList = AnswerSummary[];
+
+export const getMyAnswerListAPI = async () => {
   try {
-    const res = await axiosInstance.get(`user/my-page/answer-data`, {
-      params: {
-        userid,
-      },
-    });
-    const answerList: AnswerDataResponse = res.data;
+    const res = await axiosInstance.get(`user/my-page/answer-data`);
+    const answerList: MyAnswerSummaryList = res.data;
 
     return answerList;
   } catch (error) {
