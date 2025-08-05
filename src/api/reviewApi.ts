@@ -46,10 +46,33 @@ export interface CreateReviewCommentRequest {
 
 export const createReviewAPI = async (
   data: ReviewCreateRequest,
-  problemId: number
+  answerId: number
 ) => {
   try {
-    await axiosInstance.post(`review/answers/${problemId}/reviews`, data);
+    await axiosInstance.post(`review/answers/${answerId}/reviews`, data);
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const modifyReviewAPI = async (
+  data: ReviewCreateRequest,
+  answerId: number,
+  reviewId: number
+) => {
+  try {
+    await axiosInstance.put(
+      `review/answers/${answerId}/reviews/${reviewId}`,
+      data
+    );
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const deleteReviewAPI = async (reviewId: number) => {
+  try {
+    await axiosInstance.delete(`review/reviews/${reviewId}`);
   } catch (error) {
     apiErrorHandler(error);
   }
