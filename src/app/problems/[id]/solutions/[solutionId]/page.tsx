@@ -563,6 +563,16 @@ export default function SolutionsDetailPage() {
                         >
                           <Image
                             src={
+                              reviewPage.reviewLayer.backgroundImgUrl ||
+                              "/placeholder.svg"
+                            }
+                            alt={`Review Page Background ${index + 1}`}
+                            fill
+                            style={{ objectFit: "cover" }}
+                            className="rounded-md"
+                          />
+                          <Image
+                            src={
                               reviewPage.reviewLayer.imgUrl ||
                               "/placeholder.svg"
                             }
@@ -598,7 +608,7 @@ export default function SolutionsDetailPage() {
                         <Image
                           src={
                             reviewPages[activeReviewPageIndex].reviewLayer
-                              .imgUrl || "/placeholder.svg"
+                              .backgroundImgUrl || "/placeholder.svg"
                           }
                           alt={`Review Page ${activeReviewPageIndex + 1}`}
                           width={600}
