@@ -54,35 +54,35 @@ function Problem() {
   }, [problemId]);
 
   //fetch last solution data
-  useEffect(() => {
-    const fetchLastSolution = async () => {
-      if (!problem) {
-        return;
-      }
-      const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
+  // useEffect(() => {
+  //   const fetchLastSolution = async () => {
+  //     if (!problem) {
+  //       return;
+  //     }
+  //     const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
 
-      if (!lastSolutionId) {
-        return;
-      }
+  //     if (!lastSolutionId) {
+  //       return;
+  //     }
 
-      setIsSolutionLoading(true);
-      try {
-        const data = await getSolutionDetailAPI(lastSolutionId);
+  //     setIsSolutionLoading(true);
+  //     try {
+  //       const data = await getSolutionDetailAPI(lastSolutionId);
 
-        if (!data) {
-          throw "error";
-        }
+  //       if (!data) {
+  //         throw "error";
+  //       }
 
-        setSolutionImages(data.answerImgSolutions);
-      } catch {
-        alert("내 풀이 불러오기에 실패하였습니다");
-      } finally {
-        setIsSolutionLoading(false);
-      }
-    };
+  //       setSolutionImages(data.answerImgSolutions);
+  //     } catch {
+  //       alert("내 풀이 불러오기에 실패하였습니다");
+  //     } finally {
+  //       setIsSolutionLoading(false);
+  //     }
+  //   };
 
-    fetchLastSolution();
-  }, [problem]);
+  //   fetchLastSolution();
+  // }, [problem]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
