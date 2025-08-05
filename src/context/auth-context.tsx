@@ -3,7 +3,6 @@
 import { deleteUserAPI, loginAPI, logoutAPI } from "@/api/authApi";
 import {
   getMeInternalAPI,
-  getUserDataAPI,
   updateUserPasswordAPI,
   updateUserProfileAPI,
   UpdateUserProfileRequest,
