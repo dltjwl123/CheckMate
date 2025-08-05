@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  AnswerSummary,
-  getMyAnswerListAPI,
-  MyAnswerSummaryListResponse,
-} from "@/api/userApi";
+import { getMyAnswerListAPI, MyAnswerSummaryListResponse } from "@/api/userApi";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Table, {
@@ -17,13 +13,13 @@ import Table, {
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/auth-context";
 import { getRelativeTime } from "@/utils/time";
-import { BookOpen, Check, X } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function MySolutionsPage() {
-  const { user, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
   const router = useRouter();
   const [myAnswers, setMyAnswers] = useState<MyAnswerSummaryListResponse>([]);
 
@@ -32,10 +28,6 @@ export default function MySolutionsPage() {
       router.replace("/login");
     }
   }, [router, isLoggedIn]);
-
-  if (!isLoggedIn) {
-    return null;
-  }
 
   useEffect(() => {
     const getAnswerList = async () => {
@@ -55,6 +47,10 @@ export default function MySolutionsPage() {
 
     getAnswerList();
   }, []);
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

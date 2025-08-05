@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function MyReviewPage() {
-  const { user, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
   const router = useRouter();
   const [myReviewList, setMyReviewList] = useState<myReviewSummaryListResponse>(
     []
@@ -30,10 +30,6 @@ export default function MyReviewPage() {
       router.replace("/login");
     }
   }, [isLoggedIn, router]);
-
-  if (!isLoggedIn) {
-    return null;
-  }
 
   useEffect(() => {
     const getMyReviewList = async () => {
@@ -53,6 +49,10 @@ export default function MyReviewPage() {
 
     getMyReviewList();
   }, []);
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
