@@ -21,7 +21,7 @@ import React, {
 interface AuthContextType {
   user: UserProfile | null;
   isLoggedIn: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (newNickname: string, newProfileImage?: File) => Promise<void>;
   changePassword: (newPassword: string) => Promise<boolean>;
@@ -35,21 +35,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const router = useRouter();
 
-  const login = useCallback(async (email: string, password: string) => {
-    try {
-      await loginAPI(email, password);
+  const login = useCallback(
+    async (email: string, password: string): Promise<boolean> => {
+      try {
+        await loginAPI(email, password);
 
-      const userData = await getMeInternalAPI();
-      if (!userData) {
-        throw new Error("user info failure");
+        const userData = await getMeInternalAPI();
+        if (!userData) {
+          throw new Error("user info failure");
+        }
+        setUser(userData);
+        setIsLoggedIn(true);
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        alert("로그인에 실패하였습니다.");
+        return false;
       }
-      setUser(userData);
-      setIsLoggedIn(true);
-    } catch (error) {
-      console.error(error);
-      alert("로그인에 실패하였습니다.");
-    }
-  }, []);
+    },
+    []
+  );
 
   const logout = useCallback(async () => {
     await logoutAPI();

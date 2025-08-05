@@ -22,9 +22,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const isLoginSuccess = await login(email, password);
 
-      router.push("/");
+      if (isLoginSuccess) {
+        router.push("/");
+      }
     } catch {
       return;
     } finally {
