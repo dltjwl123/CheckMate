@@ -196,6 +196,7 @@ export default function SolutionsDetailPage() {
   useEffect(() => {
     if (reviewDataList[reviewrIndex]) {
       setReviewPages(reviewDataList[reviewrIndex].reviewPages);
+      setSelectedReviewId(reviewDataList[reviewrIndex].id);
     }
   }, [reviewDataList, reviewrIndex]);
 
