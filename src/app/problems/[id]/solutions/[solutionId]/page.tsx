@@ -652,27 +652,27 @@ export default function SolutionsDetailPage() {
                               }}
                             />
                           )}
+
+                          {/* Text Boxes */}
+                          {reviewPages[activeReviewPageIndex].annotations.map(
+                            (annotation, index) => (
+                              <div
+                                key={index}
+                                className="absolute bg-yellow-100 bg-opacity-70
+                border border-yellow-400 rounded p-2 text-sm text-gray-800 overflow-hidden"
+                                style={{
+                                  left: `${annotation.position.x}px`,
+                                  top: `${annotation.position.y}px`,
+                                  width: `${annotation.width}px`,
+                                  height: `${annotation.height}px`,
+                                }}
+                              >
+                                {annotation.content}
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
-
-                      {/* Text Boxes */}
-                      {reviewPages[activeReviewPageIndex].annotations.map(
-                        (annotation, index) => (
-                          <div
-                            key={index}
-                            className="absolute bg-yellow-100 bg-opacity-70
-                border border-yellow-400 rounded p-2 text-sm text-gray-800 overflow-hidden"
-                            style={{
-                              left: `${annotation.position.x}px`,
-                              top: `${annotation.position.y}px`,
-                              width: `${annotation.width}px`,
-                              height: `${annotation.height}px`,
-                            }}
-                          >
-                            {annotation.content}
-                          </div>
-                        )
-                      )}
                     </div>
                   ) : (
                     <div className="text-center text-gray-500 py-8">
