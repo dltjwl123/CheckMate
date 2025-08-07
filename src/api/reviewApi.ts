@@ -45,6 +45,25 @@ export interface CreateReviewCommentRequest {
   content: string;
 }
 
+export interface ReviewComment {
+  id: number;
+  authorId: number;
+  authorName: string;
+  profileImgUrl: string | null;
+  content: string;
+  createdAt: string;
+  parentId: number | null;
+  parentAuthorName: string | null;
+  children: ReviewComment[];
+  isDeleted: boolean;
+}
+
+export interface EditReviewCommnetRequest {
+  commentId: number;
+  content: string;
+}
+
+// Review
 export const createReviewAPI = async (
   data: ReviewCreateRequest,
   answerId: number
@@ -90,12 +109,24 @@ export const getReviewDetailAPI = async (reviewId: number) => {
   }
 };
 
-export const createReviewComment = async (
-  data: CreateReviewCommentRequest,
-  reviewId: number
+// Review Comment
+export const getReviewCommentsAPI = async (reviewId: number) => {
+  try {
+    const res = await axiosInstance.get(`review-comments/${reviewId}`);
+    const data: ReviewComment[] = res.data;
+
+    return data;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const createReviewCommentAPI = async (
+  reviewId: number,
+  data: CreateReviewCommentRequest
 ) => {
   try {
-    await axiosInstance.post(`review-comments/${reviewId}`);
+    await axiosInstance.post(`review-comments/${reviewId}`, data);
   } catch (error) {
     apiErrorHandler(error);
   }
@@ -104,6 +135,14 @@ export const createReviewComment = async (
 export const deleteReviewCommentAPI = async (commentId: number) => {
   try {
     await axiosInstance.delete(`review-comments/${commentId}`);
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const EditReviewCommnetAPI = async (data: EditReviewCommnetRequest) => {
+  try {
+    await axiosInstance.put("review-comments/reviews/comments", data);
   } catch (error) {
     apiErrorHandler(error);
   }

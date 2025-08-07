@@ -12,6 +12,7 @@ import {
   getReviewDetailAPI,
   ReviewLayer,
 } from "@/api/reviewApi";
+import { CommentSection } from "@/components/comment";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
@@ -687,6 +688,8 @@ export default function SolutionsDetailPage() {
                 </div>
               )}
             </CardContent>
+
+            {/* Review Edit Buttons */}
             <div className="mb-4 mr-8 text-right space-x-2">
               <Link
                 href={`/problems/${problemId}/solutions/${solutionId}/review?reviewId=${selectedReviewId}`}
@@ -704,6 +707,12 @@ export default function SolutionsDetailPage() {
                 리뷰 삭제
               </Button>
             </div>
+
+            <CardContent>
+              {reviewDataList[reviewrIndex]?.id && (
+                <CommentSection reviewId={reviewDataList[reviewrIndex].id} />
+              )}
+            </CardContent>
           </Card>
         )}
 
