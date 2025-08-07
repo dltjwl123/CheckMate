@@ -708,9 +708,11 @@ export default function SolutionsDetailPage() {
               </Button>
             </div>
 
-            {reviewDataList[reviewrIndex]?.id && (
-              <CommentSection reviewId={reviewDataList[reviewrIndex].id} />
-            )}
+            <CardContent>
+              {reviewDataList[reviewrIndex]?.id && (
+                <CommentSection reviewId={reviewDataList[reviewrIndex].id} />
+              )}
+            </CardContent>
           </Card>
         )}
 

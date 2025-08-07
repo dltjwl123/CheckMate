@@ -16,7 +16,9 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
   const [comments, setComments] = useState<ReviewComment[]>([]);
   const [replyTarget, setReplyTarget] = useState<number | null>(null);
   const [editTarget, setEditTarget] = useState<number | null>(null);
-  const [inputValue, setInputValue] = useState<string>("");
+  const [commentContent, setCommentContent] = useState<string>("");
+  const [replyContent, setReplyContent] = useState<string>("");
+  const [editContent, setEditContent] = useState<string>("");
   const [reload, setReload] = useState<boolean>(false);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
   const handleSaveComment = async () => {
     try {
       await createReviewCommentAPI(reviewId, {
-        content: inputValue,
+        content: commentContent,
         parentId: null,
       });
       setReload((prev) => !prev);
@@ -61,7 +63,7 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
 
   const renderComments = (comments: ReviewComment[], depth: number) => {
     const IsReply: boolean = depth >= 1;
-    console.log("comments:", comments, "depth:", depth);
+
     return comments.map((comment: ReviewComment) => (
       <div key={comment.id} className={`${IsReply ? "ml-8" : ""}`}>
         <div className="flex items-start gap-3">
@@ -84,16 +86,16 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
               <textarea
                 className="w-full resize-none border border-gray-300 rounded-md px-2 py-1 mt-2 text-sm"
                 rows={3}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
               />
             ) : (
-              <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">
                 {comment.content}
               </p>
             )}
 
-            <div className="mt-2 space-x-4 text-xs text-blue-600">
+            <div className="mt-2 space-x-4 text-blue-600">
               {editTarget === comment.id ? (
                 <>
                   <button
@@ -103,7 +105,10 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
                     저장
                   </button>
                   <button
-                    onClick={() => setEditTarget(null)}
+                    onClick={() => {
+                      setEditTarget(null);
+                      setEditContent("");
+                    }}
                     className="text-gray-500 hover:underline"
                   >
                     취소
@@ -120,7 +125,7 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
                   <button
                     onClick={() => {
                       setEditTarget(comment.id);
-                      setInputValue(comment.content);
+                      setEditContent(comment.content);
                     }}
                     className="hover:underline"
                   >
@@ -144,23 +149,17 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
             <textarea
               className="w-full resize-none border border-gray-300 rounded-md px-2 py-1 text-sm"
               rows={2}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
               placeholder="답글을 입력하세요"
             />
             <div className="mt-2 text-right space-x-2">
-              <button
-                onClick={handleSaveReply}
-                className="text-sm text-blue-600 hover:underline"
-              >
+              <Button onClick={handleSaveReply} variant="default">
                 등록
-              </button>
-              <button
-                onClick={() => setReplyTarget(null)}
-                className="text-sm text-gray-500 hover:underline"
-              >
+              </Button>
+              <Button onClick={() => setReplyTarget(null)} variant="outline">
                 취소
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -183,8 +182,8 @@ export function CommentSection({ reviewId }: CommentSectionProps) {
         <textarea
           className="w-full resize-none border border-gray-300 rounded-md p-2 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={3}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          value={commentContent}
+          onChange={(e) => setCommentContent(e.target.value)}
           placeholder="내용을 입력하세요"
         />
         <div className="mt-2 text-right">
