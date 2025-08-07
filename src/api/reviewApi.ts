@@ -55,6 +55,7 @@ export interface ReviewComment {
   parentId: number | null;
   parentAuthorName: string | null;
   children: ReviewComment[];
+  isDeleted: boolean;
 }
 
 // Review
