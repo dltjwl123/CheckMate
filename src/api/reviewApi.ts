@@ -49,7 +49,7 @@ export interface ReviewComment {
   id: number;
   authorId: number;
   authorName: string;
-  authorProfileUrl: string | null;
+  profileImgUrl: string | null;
   content: string;
   createAt: string;
   parentId: number | null;

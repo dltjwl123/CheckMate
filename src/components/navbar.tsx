@@ -51,9 +51,8 @@ function Navbar() {
                     "placeholder.svg?height=40&width=40"
                   }
                   alt="Profile"
-                  width={32}
-                  height={32}
-                  unoptimized 
+                  width={128}
+                  height={128}
                   className="w-8 h-8 rounded-full border border-gray-200 object-cover"
                 />
                 <span className="text-gray-700 font-semibold">
