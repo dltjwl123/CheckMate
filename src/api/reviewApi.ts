@@ -51,11 +51,16 @@ export interface ReviewComment {
   authorName: string;
   profileImgUrl: string | null;
   content: string;
-  createAt: string;
+  createdAt: string;
   parentId: number | null;
   parentAuthorName: string | null;
   children: ReviewComment[];
   isDeleted: boolean;
+}
+
+export interface EditReviewCommnetRequest {
+  commentId: number;
+  content: string;
 }
 
 // Review
@@ -130,6 +135,14 @@ export const createReviewCommentAPI = async (
 export const deleteReviewCommentAPI = async (commentId: number) => {
   try {
     await axiosInstance.delete(`review-comments/${commentId}`);
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const EditReviewCommnetAPI = async (data: EditReviewCommnetRequest) => {
+  try {
+    await axiosInstance.put("review-comments/reviews/comments", data);
   } catch (error) {
     apiErrorHandler(error);
   }
