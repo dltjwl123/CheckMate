@@ -68,7 +68,13 @@ export interface AnswerDetailResponse {
   tagNames: string[];
   problemTitle: string;
   username: string;
-  status: "REVIEWED" | "CORRECT" | "INCORRECT";
+  status:
+    | "CORRECT"
+    | "INCORRECT"
+    | "PARTIALLY_CORRECT"
+    | "UNANSWERED"
+    | "REVIEWED"
+    | "PENDING_REVIEW";
   submittedAt: string;
   answerImgSolutions: string[];
   aiReview: AiReview;

@@ -264,7 +264,7 @@ export default function SolutionsDetailPage() {
                     <span>{solution.username}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    {solution.status === "REVIEWED" ? (
+                    {solution.status === "CORRECT" ? (
                       <>
                         <Check className="h-4 w-4 text-green-600" />
                         <span className="text-green-600">정답</span>
