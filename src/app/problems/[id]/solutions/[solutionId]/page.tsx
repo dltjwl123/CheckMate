@@ -121,9 +121,7 @@ export default function SolutionsDetailPage() {
 
       setIsSolutionLoading(true);
       try {
-        const solutionDetail = await getSolutionDetailAPI(
-          problem.answers[0].id
-        );
+        const solutionDetail = await getSolutionDetailAPI(Number(solutionId));
 
         if (!solutionDetail) {
           throw new Error("solution API error");
