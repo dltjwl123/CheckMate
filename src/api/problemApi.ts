@@ -16,6 +16,7 @@ export interface Problem {
   examName: string;
   tagNames: string[];
   accuracyRate: number;
+  solved: boolean;
 }
 
 export interface Sort {
