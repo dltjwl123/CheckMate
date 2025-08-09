@@ -17,13 +17,17 @@ export const binaryToFile = (dataURL: string, fileName: string) => {
   return new File([u8arr], fileName, { type: mime });
 };
 
-export const fileUploader = async (files: File[]): Promise<string[]> => {
+export const fileUploader = async (
+  files: File[],
+  prefix: string
+): Promise<string[]> => {
   const urls: string[] = [];
 
   await Promise.all(
     files.map(async (file) => {
       try {
-        const presignURL = await getPresignUrlAPI(file.name);
+        const path = prefix + "/" + file.name;
+        const presignURL = await getPresignUrlAPI(path);
 
         if (!presignURL) {
           throw new Error(`presignURL is missing for file: ${file.name}`);
@@ -35,7 +39,7 @@ export const fileUploader = async (files: File[]): Promise<string[]> => {
           window.location.origin
         );
         await uploadToS3API(newURL.toString(), file);
-        urls.push(`${S3_BASE_URL}/${file.name}`);
+        urls.push(`${S3_BASE_URL}/${path}`);
       } catch (error) {
         console.error("Upload failed:", file.name, error);
       }
