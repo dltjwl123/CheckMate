@@ -421,7 +421,11 @@ export default function SolutionsDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
-                <Latex tex={solution.aiReview.content} />
+                {solution?.aiReview?.content ? (
+                  <Latex tex={solution.aiReview.content} />
+                ) : (
+                  <p className="text-gray-500 italic">AI 리뷰가 없습니다.</p>
+                )}
               </div>
             </CardContent>
           </Card>
