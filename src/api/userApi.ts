@@ -49,7 +49,7 @@ export const getUserDataAPI = async () => {
 
 export const getMeInternalAPI = async () => {
   try {
-    const res = await axios.get("internal/me");
+    const res = await axios.get("/internal/me");
     const userProfile: UserProfile = res.data;
 
     return userProfile;
