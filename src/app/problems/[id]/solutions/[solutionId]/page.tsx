@@ -14,6 +14,7 @@ import {
 } from "@/api/reviewApi";
 import { CommentSection } from "@/components/comment";
 import Footer from "@/components/footer";
+import { Latex } from "@/components/latex";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
@@ -420,24 +421,7 @@ export default function SolutionsDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
-                <div
-                  className="whitespace-pre-wrap text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: solution
-                      .aiReview!.content.replace(
-                        /\*\*(.*?)\*\*/g,
-                        "<strong>$1</strong>"
-                      )
-                      .replace(
-                        /\$\$(.*?)\$\$/g,
-                        `<span class="font-mono bg-gray-100 px-1 rounded">$1</span>`
-                      )
-                      .replace(
-                        /\$(.*?)\$/g,
-                        `<span class="font-mono bg-gray-100 px-1 rounded">$1</span>`
-                      ),
-                  }}
-                />
+                <Latex tex={solution.aiReview.content} />
               </div>
             </CardContent>
           </Card>
