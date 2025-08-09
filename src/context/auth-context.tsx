@@ -73,7 +73,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let uploadedImgURL: string | undefined = undefined;
 
       if (newProfileImage) {
-        const urls: string[] = await fileUploader([newProfileImage]);
+        const urls: string[] = await fileUploader(
+          [newProfileImage],
+          `users/${user.id}/profile`
+        );
         uploadedImgURL = urls[0];
       }
       const updateUserData: UpdateUserProfileRequest = {

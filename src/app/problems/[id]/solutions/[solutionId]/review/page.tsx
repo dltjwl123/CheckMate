@@ -80,6 +80,12 @@ export default function ReviewCreatePage() {
   }, [reviewId]);
 
   const handleSubmitReview = async (reviewPagesData: ReviewPage[]) => {
+    if (!user) {
+      alert("로그인 후 사용할 수 있는 기능입니다.");
+      return;
+    }
+    const urlPrefix: string = `users/${user.id}/problems/${problemId}/answers/${solutionId}/reviews`;
+
     try {
       const annotations: Annotation[] = reviewPagesData.reduce(
         (
@@ -109,9 +115,11 @@ export default function ReviewCreatePage() {
           } else {
             const tmpFile: File = binaryToFile(
               url,
-              `review-${user?.id}-${solutionId}-${index}`
+              `review-${user.id}-${solutionId}-${index}`
             );
-            const uploadedUrl: string = (await fileUploader([tmpFile]))[0];
+            const uploadedUrl: string = (
+              await fileUploader([tmpFile], urlPrefix)
+            )[0];
 
             return uploadedUrl;
           }
@@ -129,7 +137,9 @@ export default function ReviewCreatePage() {
               url,
               `review-bg-${user?.id}-${solutionId}-${index}`
             );
-            const uploadedUrl: string = (await fileUploader([tmpFile]))[0];
+            const uploadedUrl: string = (
+              await fileUploader([tmpFile], urlPrefix)
+            )[0];
 
             return uploadedUrl;
           }

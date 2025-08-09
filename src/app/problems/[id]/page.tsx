@@ -18,7 +18,7 @@ import { fileUploader } from "@/utils/fileUploader";
 
 function Problem() {
   const { id } = useParams();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const router = useRouter();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
@@ -51,37 +51,6 @@ function Problem() {
 
     getProblemDetail();
   }, [problemId]);
-
-  //fetch last solution data
-  // useEffect(() => {
-  //   const fetchLastSolution = async () => {
-  //     if (!problem) {
-  //       return;
-  //     }
-  //     const lastSolutionId = problem.answers[problem.answers.length - 1]?.id;
-
-  //     if (!lastSolutionId) {
-  //       return;
-  //     }
-
-  //     setIsSolutionLoading(true);
-  //     try {
-  //       const data = await getSolutionDetailAPI(lastSolutionId);
-
-  //       if (!data) {
-  //         throw "error";
-  //       }
-
-  //       setSolutionImages(data.answerImgSolutions);
-  //     } catch {
-  //       alert("내 풀이 불러오기에 실패하였습니다");
-  //     } finally {
-  //       setIsSolutionLoading(false);
-  //     }
-  //   };
-
-  //   fetchLastSolution();
-  // }, [problem]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -126,9 +95,16 @@ function Problem() {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      alert("로그인 이후에 사용해 주세요.");
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const uploadedFileURLs: string[] = await fileUploader(imgFiles);
+      const uploadedFileURLs: string[] = await fileUploader(
+        imgFiles,
+        `users/${user.id}/problems/${problemId}/answers`
+      );
 
       await submitUserSolution({
         answer: Number(answer),

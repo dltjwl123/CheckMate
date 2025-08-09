@@ -467,19 +467,20 @@ function Main() {
                                 : "bg-green-100 text-green-800"
                             }`}
                           >
-                            {problem.accuracyRate}%
+                            {Number.isInteger(problem.accuracyRate)
+                              ? problem.accuracyRate
+                              : problem.accuracyRate.toFixed(2)}
+                            %
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          {/* 임시 */}
-                          <Badge variant="outline">미완료</Badge>
-                          {/* {problem.solved ? (
-                        <Badge className="bg-green-100 text-green-800">
-                          완료
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">미완료</Badge>
-                      )} */}
+                          {problem.solved ? (
+                            <Badge className="bg-green-100 text-green-800">
+                              완료
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">미완료</Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">

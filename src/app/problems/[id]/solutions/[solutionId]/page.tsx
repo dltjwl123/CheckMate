@@ -14,6 +14,7 @@ import {
 } from "@/api/reviewApi";
 import { CommentSection } from "@/components/comment";
 import Footer from "@/components/footer";
+import { Latex } from "@/components/latex";
 import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
@@ -121,9 +122,7 @@ export default function SolutionsDetailPage() {
 
       setIsSolutionLoading(true);
       try {
-        const solutionDetail = await getSolutionDetailAPI(
-          problem.answers[0].id
-        );
+        const solutionDetail = await getSolutionDetailAPI(Number(solutionId));
 
         if (!solutionDetail) {
           throw new Error("solution API error");
@@ -150,7 +149,7 @@ export default function SolutionsDetailPage() {
     };
 
     getSolutionDetail();
-  }, [problem]);
+  }, [problem, solutionId]);
 
   useEffect(() => {
     if (reviewDataList[reviewrIndex] !== null || !selectedReviewId) {
@@ -266,7 +265,7 @@ export default function SolutionsDetailPage() {
                     <span>{solution.username}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    {solution.status === "REVIEWED" ? (
+                    {solution.status === "CORRECT" ? (
                       <>
                         <Check className="h-4 w-4 text-green-600" />
                         <span className="text-green-600">정답</span>
@@ -422,24 +421,11 @@ export default function SolutionsDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
-                <div
-                  className="whitespace-pre-wrap text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: solution
-                      .aiReview!.content.replace(
-                        /\*\*(.*?)\*\*/g,
-                        "<strong>$1</strong>"
-                      )
-                      .replace(
-                        /\$\$(.*?)\$\$/g,
-                        `<span class="font-mono bg-gray-100 px-1 rounded">$1</span>`
-                      )
-                      .replace(
-                        /\$(.*?)\$/g,
-                        `<span class="font-mono bg-gray-100 px-1 rounded">$1</span>`
-                      ),
-                  }}
-                />
+                {solution?.aiReview?.content ? (
+                  <Latex tex={solution.aiReview.content} />
+                ) : (
+                  <p className="text-gray-500 italic">AI 리뷰가 없습니다.</p>
+                )}
               </div>
             </CardContent>
           </Card>
