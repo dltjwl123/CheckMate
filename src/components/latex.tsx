@@ -1,5 +1,5 @@
 import katex from "katex";
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 
 export interface LatexProps extends React.HTMLAttributes<HTMLDivElement> {
   tex: string;

@@ -149,7 +149,7 @@ export default function SolutionsDetailPage() {
     };
 
     getSolutionDetail();
-  }, [problem]);
+  }, [problem, solutionId]);
 
   useEffect(() => {
     if (reviewDataList[reviewrIndex] !== null || !selectedReviewId) {
