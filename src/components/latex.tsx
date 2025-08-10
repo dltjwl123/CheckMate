@@ -43,7 +43,7 @@ export function Latex({ tex, ...props }: LatexProps) {
     <div {...props}>
       {tokens.map((token, i) =>
         token.type === "text" ? (
-          <span key={i}>{token.value}</span>
+          <span key={i} className="whitespace-pre-wrap">{token.value}</span>
         ) : (
           <span
             key={i}
