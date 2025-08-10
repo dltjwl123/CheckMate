@@ -76,12 +76,50 @@ export default function ReviewEditor({
   const activePage = reviewPages[activePageIndex];
   const imageContainRef = useRef<HTMLDivElement>(null);
 
-  // Textbox states
+  // annotation states
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
+  const annotationsRef = useRef<Record<string, HTMLDivElement | null>>({});
   // const [resizeOffset, setResizeOffset] = useState<Point>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+
+  const placeCaretAtEnd = (element: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    range.collapse(false);
+
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
+  const selectAllText = (element: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+
+    const select = window.getSelection();
+    select?.removeAllRanges();
+    select?.addRange(range);
+  };
+
+  useEffect(() => {
+    if (!selectedAnnotationId) {
+      return;
+    }
+
+    const element = annotationsRef.current[selectedAnnotationId];
+    if (!element) {
+      return;
+    }
+
+    element.focus();
+    placeCaretAtEnd(element);
+
+    if (element.innerText.trim() === "새 텍스트") {
+      selectAllText(element);
+    }
+  }, [selectedAnnotationId]);
 
   useEffect(() => {
     if (initialReviewDetail) {
@@ -678,6 +716,9 @@ export default function ReviewEditor({
                 onMouseDown={(e) => handleMouseDown(e, annotation.id, "drag")}
               >
                 <div
+                  ref={(node: HTMLDivElement) => {
+                    annotationsRef.current[annotation.id] = node;
+                  }}
                   contentEditable
                   suppressContentEditableWarning
                   className="w-full h-full outline-none"
