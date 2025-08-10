@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Save,
+  StickyNote,
   TextCursorInput,
   Trash2,
   XCircle,
@@ -46,6 +47,7 @@ type Point = { x: number; y: number };
 
 const DRAWING_WIDTH = 600;
 const DRAWING_HEIGHT = 800;
+const COLLAPSED_SIZE = 24; // px
 
 export default function ReviewEditor({
   initialSolutionImageUrls,
@@ -425,7 +427,9 @@ export default function ReviewEditor({
 
       addAnnotation(x, y);
     } else if (mode === "select") {
-      setSelectedAnnotationId(null);
+      if (e.target === e.currentTarget) {
+        setSelectedAnnotationId(null);
+      }
     }
   };
 
@@ -692,79 +696,130 @@ export default function ReviewEditor({
             />
 
             {/* Text Box */}
-            {activePage.annotations.map((annotation) => (
-              <div
-                key={annotation.id}
-                className={`absolute bg-yellow-100 opacity-70 border rounded p-2
-                  text-sm text-gray-800 resize overflow-hidden ${
-                    selectedAnnotationId === annotation.id
-                      ? "border-blue-500 ring-2 ring-blue-500"
-                      : "border-yellow-400"
-                  }`}
-                style={{
-                  left: annotation.position.x,
-                  top: annotation.position.y,
-                  width: annotation.width,
-                  height: annotation.height,
-                  cursor:
-                    mode === "select" && isDragging
-                      ? "grabbing"
-                      : mode === "select"
-                      ? "grab"
-                      : "default",
-                }}
-                onMouseDown={(e) => handleMouseDown(e, annotation.id, "drag")}
-              >
+            {activePage.annotations.map((annotation) => {
+              const isFocused = selectedAnnotationId === annotation.id;
+              return (
                 <div
-                  ref={(node: HTMLDivElement) => {
-                    annotationsRef.current[annotation.id] = node;
+                  key={annotation.id}
+                  className={`absolute
+                      ${
+                        // Background
+                        isFocused
+                          ? "bg-yellow-100 opacity-70 border rounded p-2 text-sm text-gray-800 overflow-visible"
+                          : "flex items-center justify-center rounded-full bg-yellow-200/90 shadow-sm hover:ring-2 hover:ring-blue-400"
+                      }
+                    ${
+                      // Cursor
+                      isFocused
+                        ? mode === "select" && isDragging
+                          ? "cursor-grabbing"
+                          : mode === "select"
+                          ? "cursor-grab"
+                          : "cursor-default"
+                        : "cursor-pointer"
+                    }
+                    ${
+                      // Border
+                      isFocused
+                        ? mode === "select"
+                          ? "border-blue-500 ring-2 ring-blue-500"
+                          : "border-yellow-400"
+                        : ""
+                    }`}
+                  style={{
+                    left: annotation.position.x,
+                    top: annotation.position.y,
+                    width: isFocused ? annotation.width : COLLAPSED_SIZE,
+                    height: isFocused ? annotation.height : COLLAPSED_SIZE,
+                    cursor:
+                      mode === "select" && isDragging
+                        ? "grabbing"
+                        : mode === "select"
+                        ? "grab"
+                        : "default",
                   }}
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="w-full h-full outline-none"
-                  onBlur={(e) =>
-                    handleTextBoxContentChange(
-                      annotation.id,
-                      e.currentTarget.innerText
-                    )
-                  }
+                  onMouseDown={(e) => {
+                    if (!isFocused) {
+                      return;
+                    }
+                    handleMouseDown(e, annotation.id, "drag");
+                  }}
                   onClick={(e) => {
-                    e.stopPropagation();
-                    if (mode !== "select") {
+                    if (!isFocused) {
+                      e.stopPropagation();
                       setSelectedAnnotationId(annotation.id);
                       setMode("select");
                     }
                   }}
+                  title={
+                    !isFocused
+                      ? annotation.content?.slice(0, 20) || "메모"
+                      : undefined
+                  }
+                  aria-label={!isFocused ? "메모 열기" : "메모 편집"}
                 >
-                  {annotation.content}
-                </div>
-                {selectedAnnotationId === annotation.id &&
-                  mode === "select" && (
+                  {isFocused ? (
                     <>
-                      {/* Resize handle */}
                       <div
-                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-300
-                      rounded-full cursor-nwse-resize z-20"
-                        onMouseDown={(e) =>
-                          handleMouseDown(e, annotation.id, "resize", "br")
+                        ref={(node: HTMLDivElement) => {
+                          annotationsRef.current[annotation.id] = node;
+                        }}
+                        contentEditable
+                        suppressContentEditableWarning
+                        className="w-full h-full outline-none"
+                        onBlur={(e) =>
+                          handleTextBoxContentChange(
+                            annotation.id,
+                            e.currentTarget.innerText
+                          )
                         }
-                      />
-
-                      {/* Delete Button */}
-                      <button
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 z-20"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteAnnotation(annotation.id);
+                          if (mode !== "select") {
+                            setSelectedAnnotationId(annotation.id);
+                            setMode("select");
+                          }
                         }}
-                        aria-label="텍스트 박스 삭제"
                       >
-                        <XCircle className="h-4 w-4" />
-                      </button>
+                        {annotation.content}
+                      </div>
+                      {selectedAnnotationId === annotation.id &&
+                        mode === "select" && (
+                          <>
+                            {/* Resize handle */}
+                            <div
+                              className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-300
+                      rounded-full cursor-nwse-resize z-20"
+                              onMouseDown={(e) =>
+                                handleMouseDown(
+                                  e,
+                                  annotation.id,
+                                  "resize",
+                                  "br"
+                                )
+                              }
+                            />
+
+                            {/* Delete Button */}
+                            <button
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 z-20"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteAnnotation(annotation.id);
+                              }}
+                              aria-label="텍스트 박스 삭제"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                     </>
+                  ) : (
+                    <Pencil className="h-4 w-4" />
                   )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
