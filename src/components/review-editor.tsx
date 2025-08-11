@@ -48,6 +48,7 @@ type Point = { x: number; y: number };
 const DRAWING_WIDTH = 600;
 const DRAWING_HEIGHT = 800;
 const COLLAPSED_SIZE = 24; // px
+const DRAG_CLICK_THRESHOLD = 3;
 
 export default function ReviewEditor({
   initialSolutionImageUrls,
@@ -82,6 +83,9 @@ export default function ReviewEditor({
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
+  const [collapsedDragId, setCollapsedDragId] = useState<string | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const hasMovedRef = useRef<boolean>(false);
   const annotationsRef = useRef<Record<string, HTMLDivElement | null>>({});
   // const [resizeOffset, setResizeOffset] = useState<Point>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
@@ -193,6 +197,19 @@ export default function ReviewEditor({
       const containerRect = imageContainRef.current.getBoundingClientRect();
       const scaleX = DRAWING_WIDTH / containerRect.width;
       const scaleY = DRAWING_HEIGHT / containerRect.height;
+      const movingId = collapsedDragId ?? selectedAnnotationId;
+
+      if (!movingId) {
+        return;
+      }
+
+      if (dragStartRef.current) {
+        const dx = e.clientX - dragStartRef.current.x;
+        const dy = e.clientY - dragStartRef.current.y;
+        if (Math.hypot(dx, dy) > DRAG_CLICK_THRESHOLD) {
+          hasMovedRef.current = true;
+        }
+      }
 
       setReviewPages((prevPages) =>
         prevPages.map((page, pIdx) => {
@@ -200,44 +217,48 @@ export default function ReviewEditor({
             return {
               ...page,
               annotations: page.annotations.map((annotation) => {
-                if (annotation.id === selectedAnnotationId) {
-                  if (isDragging) {
-                    let newX = (e.clientX - dragOffset.x) * scaleX;
-                    let newY = (e.clientY - dragOffset.y) * scaleY;
+                if (annotation.id !== movingId) {
+                  return annotation;
+                }
 
-                    newX = Math.max(
-                      0,
-                      Math.min(newX, DRAWING_WIDTH - annotation.width)
-                    );
-                    newY = Math.max(
-                      0,
-                      Math.min(newY, DRAWING_HEIGHT - annotation.height)
-                    );
-                    return {
-                      ...annotation,
+                if (isDragging) {
+                  let newX = (e.clientX - dragOffset.x) * scaleX;
+                  let newY = (e.clientY - dragOffset.y) * scaleY;
+
+                  newX = Math.max(
+                    0,
+                    Math.min(newX, DRAWING_WIDTH - annotation.width)
+                  );
+                  newY = Math.max(
+                    0,
+                    Math.min(newY, DRAWING_HEIGHT - annotation.height)
+                  );
+                  return {
+                    ...annotation,
+                    position: {
                       x: newX,
                       y: newY,
-                    };
-                  } else if (isResizing && resizeHandle) {
-                    let newWidth = annotation.width;
-                    let newHeight = annotation.height;
-                    const currentX = (e.clientX - containerRect.left) * scaleX;
-                    const currentY = (e.clientY - containerRect.top) * scaleY;
+                    },
+                  };
+                } else if (isResizing && resizeHandle) {
+                  let newWidth = annotation.width;
+                  let newHeight = annotation.height;
+                  const currentX = (e.clientX - containerRect.left) * scaleX;
+                  const currentY = (e.clientY - containerRect.top) * scaleY;
 
-                    switch (resizeHandle) {
-                      case "br":
-                        newWidth = currentX - annotation.position.x;
-                        newHeight = currentY - annotation.position.y;
-                        break;
-                    }
-                    newWidth = Math.max(50, newWidth);
-                    newHeight = Math.max(30, newHeight);
-                    return {
-                      ...annotation,
-                      width: newWidth,
-                      height: newHeight,
-                    };
+                  switch (resizeHandle) {
+                    case "br":
+                      newWidth = currentX - annotation.position.x;
+                      newHeight = currentY - annotation.position.y;
+                      break;
                   }
+                  newWidth = Math.max(50, newWidth);
+                  newHeight = Math.max(30, newHeight);
+                  return {
+                    ...annotation,
+                    width: newWidth,
+                    height: newHeight,
+                  };
                 }
                 return annotation;
               }),
@@ -254,14 +275,24 @@ export default function ReviewEditor({
       isResizing,
       dragOffset,
       resizeHandle,
+      collapsedDragId,
     ]
   );
 
   const handleMouseUp = useCallback(() => {
+    if (collapsedDragId) {
+      if (!hasMovedRef.current) {
+        setSelectedAnnotationId(collapsedDragId);
+        setMode("select");
+      }
+      setCollapsedDragId(null);
+      dragStartRef.current = null;
+      hasMovedRef.current = false;
+    }
     setIsDragging(false);
     setIsResizing(false);
     setResizeHandle(null);
-  }, []);
+  }, [collapsedDragId]);
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
@@ -739,12 +770,38 @@ export default function ReviewEditor({
                         : "default",
                   }}
                   onMouseDown={(e) => {
-                    if (!isFocused) {
+                    if (mode !== "select") {
                       return;
                     }
-                    handleMouseDown(e, annotation.id, "drag");
+                    if (isFocused) {
+                      handleMouseDown(e, annotation.id, "drag");
+                      return;
+                    }
+
+                    // Drag without selection
+                    const target = activePage.annotations.find(
+                      (a: EditableAnnotation) => a.id === annotation.id
+                    );
+                    if (!target) {
+                      return;
+                    }
+
+                    setIsDragging(true);
+                    setCollapsedDragId(annotation.id);
+                    dragStartRef.current = {
+                      x: e.clientX,
+                      y: e.clientY,
+                    };
+                    hasMovedRef.current = false;
+                    setDragOffset({
+                      x: e.clientX - target.position.x,
+                      y: e.clientY - target.position.y,
+                    });
                   }}
                   onClick={(e) => {
+                    if (collapsedDragId) {
+                      return;
+                    }
                     if (!isFocused) {
                       e.stopPropagation();
                       setSelectedAnnotationId(annotation.id);
