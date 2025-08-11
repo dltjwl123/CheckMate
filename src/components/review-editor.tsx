@@ -504,6 +504,42 @@ export default function ReviewEditor({
     }
   };
 
+  useEffect(() => {
+    const handleOutsideDown = (e: MouseEvent) => {
+      if (
+        mode !== "select" ||
+        !selectedAnnotationId ||
+        isDragging ||
+        isResizing
+      ) {
+        return;
+      }
+
+      const container = imageContainRef.current;
+      if (!container) {
+        return;
+      }
+
+      const target = e.target as HTMLElement;
+      // Click outside of the container
+      if (!container.contains(target)) {
+        setSelectedAnnotationId(null);
+        return;
+      }
+
+      // Click inside of the container but outside of the annotation
+      const focusedWrapper = container.querySelector<HTMLElement>(
+        `[data-annotation-id="${selectedAnnotationId}"]`
+      );
+      if (focusedWrapper && !focusedWrapper.contains(target)) {
+        setSelectedAnnotationId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideDown);
+    return () => document.removeEventListener("mousedown", handleOutsideDown);
+  }, [mode, selectedAnnotationId, isDragging, isResizing]);
+
   return (
     <div className="space-y-6">
       {/* Preview Card */}
@@ -732,6 +768,7 @@ export default function ReviewEditor({
               return (
                 <div
                   key={annotation.id}
+                  data-annotation-id={annotation.id}
                   className={`absolute
                       ${
                         // Background
