@@ -9,7 +9,6 @@ import {
   Pencil,
   Plus,
   Save,
-  StickyNote,
   TextCursorInput,
   Trash2,
   XCircle,
@@ -45,10 +44,14 @@ type DrawingTool = "pen" | "eraser";
 type Color = string;
 type Point = { x: number; y: number };
 
-const DRAWING_WIDTH = 600;
-const DRAWING_HEIGHT = 800;
-const COLLAPSED_SIZE = 24; // px
+// canvas constants(px)
+const CANVAS_WIDTH = 600;
+const CANVAS_HEIGHT = 800;
+const COLLAPSED_SIZE = 24;
 const DRAG_CLICK_THRESHOLD = 3;
+const SAFE_MARGIN = 12;
+const DEFAULT_ANNOTATION_WIDTH = 200;
+const DEFAULT_ANNOTATION_HEIGHT = 50;
 
 export default function ReviewEditor({
   initialSolutionImageUrls,
@@ -195,8 +198,8 @@ export default function ReviewEditor({
       }
 
       const containerRect = imageContainRef.current.getBoundingClientRect();
-      const scaleX = DRAWING_WIDTH / containerRect.width;
-      const scaleY = DRAWING_HEIGHT / containerRect.height;
+      const scaleX = CANVAS_WIDTH / containerRect.width;
+      const scaleY = CANVAS_HEIGHT / containerRect.height;
       const movingId = collapsedDragId ?? selectedAnnotationId;
 
       if (!movingId) {
@@ -224,15 +227,13 @@ export default function ReviewEditor({
                 if (isDragging) {
                   let newX = (e.clientX - dragOffset.x) * scaleX;
                   let newY = (e.clientY - dragOffset.y) * scaleY;
+                  const minX = SAFE_MARGIN;
+                  const minY = SAFE_MARGIN;
+                  const maxX = CANVAS_WIDTH - annotation.width - SAFE_MARGIN;
+                  const maxY = CANVAS_HEIGHT - annotation.height - SAFE_MARGIN;
 
-                  newX = Math.max(
-                    0,
-                    Math.min(newX, DRAWING_WIDTH - annotation.width)
-                  );
-                  newY = Math.max(
-                    0,
-                    Math.min(newY, DRAWING_HEIGHT - annotation.height)
-                  );
+                  newX = Math.max(minX, Math.min(newX, maxX));
+                  newY = Math.max(minY, Math.min(newY, maxY));
                   return {
                     ...annotation,
                     position: {
@@ -243,13 +244,12 @@ export default function ReviewEditor({
                 } else if (isResizing && resizeHandle) {
                   const currentX = (e.clientX - containerRect.left) * scaleX;
                   const currentY = (e.clientY - containerRect.top) * scaleY;
+                  const maxPossibleWidth =
+                    CANVAS_WIDTH - annotation.position.x - SAFE_MARGIN;
+                  const maxPossibleHeight =
+                    CANVAS_HEIGHT - annotation.position.y - SAFE_MARGIN;
                   const MIN_W = 50;
                   const MIN_H = 30;
-
-                  const maxPossibleWidth =
-                    DRAWING_WIDTH - annotation.position.x;
-                  const maxPossibleHeight =
-                    DRAWING_HEIGHT - annotation.position.y;
 
                   let newWidth = annotation.width;
                   let newHeight = annotation.height;
@@ -346,14 +346,18 @@ export default function ReviewEditor({
 
   const addAnnotation = (x: number, y: number) => {
     const newId: string = crypto.randomUUID();
+    const maxWidth = CANVAS_WIDTH - DEFAULT_ANNOTATION_WIDTH - SAFE_MARGIN;
+    const maxHeight = CANVAS_HEIGHT - DEFAULT_ANNOTATION_HEIGHT - SAFE_MARGIN;
+    const safeX = Math.max(SAFE_MARGIN, Math.min(x, maxWidth));
+    const safeY = Math.max(SAFE_MARGIN, Math.min(y, maxHeight));
     const newAnnotation: EditableAnnotation = {
       id: newId,
       position: {
-        x,
-        y,
+        x: safeX,
+        y: safeY,
       },
-      width: 200,
-      height: 50,
+      width: DEFAULT_ANNOTATION_WIDTH,
+      height: DEFAULT_ANNOTATION_HEIGHT,
       content: "새 텍스트",
       imageUrl: "",
       pageNumber: activePageIndex,
@@ -471,8 +475,8 @@ export default function ReviewEditor({
   const handleImageContainerClick = (e: React.MouseEvent) => {
     if (mode === "text") {
       const containerRect = imageContainRef.current!.getBoundingClientRect();
-      const scaleX = DRAWING_WIDTH / containerRect.width;
-      const scaleY = DRAWING_HEIGHT / containerRect.height;
+      const scaleX = CANVAS_WIDTH / containerRect.width;
+      const scaleY = CANVAS_HEIGHT / containerRect.height;
       const x = (e.clientX - containerRect.left) * scaleX;
       const y = (e.clientY - containerRect.top) * scaleY;
 
@@ -722,9 +726,7 @@ export default function ReviewEditor({
                 value={mode === "text" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setMode("text")}
-                className={`flex items-center gap-1 ${
-                  mode === "text" ? "" : "bg-transparent"
-                }`}
+                className={`flex items-center gap-1`}
               >
                 <TextCursorInput className="h-4 w-4" />
                 텍스트 추가
@@ -772,7 +774,7 @@ export default function ReviewEditor({
           <div
             ref={imageContainRef}
             className="relative w-full max-w-[600px] mx-auto border border-gray-200 rounded-md overflow-hidden shadow-sm"
-            style={{ aspectRatio: `${DRAWING_WIDTH} / ${DRAWING_HEIGHT}` }}
+            style={{ aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}
             onClick={handleImageContainerClick}
           >
             <Image
@@ -787,8 +789,8 @@ export default function ReviewEditor({
             <DrawingCanvas
               initialDrawingData={activePage.reviewLayer.imgUrl}
               onDrawingChange={handleDrawingChange}
-              width={DRAWING_WIDTH}
-              height={DRAWING_HEIGHT}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
               isActive={mode === "draw"}
               drawingTool={drawingTool}
               penColor={penColor}
