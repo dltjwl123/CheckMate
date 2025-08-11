@@ -136,7 +136,7 @@ export function DrawingCanvas({
       onMouseMove={draw}
       onMouseUp={stopDrawing}
       onMouseLeave={stopDrawing}
-      style={{ touchAction: "none" }}
+      style={{ touchAction: "none", pointerEvents: isActive ? "auto" : "none" }}
     />
   );
 }

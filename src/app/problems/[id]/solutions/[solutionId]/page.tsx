@@ -28,6 +28,7 @@ import {
   Edit,
   MessageSquare,
   MessagesSquare,
+  Pencil,
   User,
   X,
 } from "lucide-react";
@@ -51,6 +52,8 @@ interface ReviewData {
   reviewPages: ReviewPage[];
 }
 
+const COLLAPSED_SIZE = 24;
+
 export default function SolutionsDetailPage() {
   const { id, solutionId } = useParams();
   const problemId = Number.parseInt(id as string);
@@ -72,6 +75,9 @@ export default function SolutionsDetailPage() {
   const [reviewPages, setReviewPages] = useState<ReviewPage[] | null>(null);
   const [activeOfficialImageIndex, setActiveOfficialImageIndex] =
     useState<number>(0);
+  const [focusedAnnotationId, setFocusedAnnotationId] = useState<number | null>(
+    null
+  );
 
   const handleDeleteReview = async () => {
     if (!selectedReviewId) {
@@ -203,6 +209,11 @@ export default function SolutionsDetailPage() {
       setSelectedReviewId(reviewDataList[reviewrIndex].id);
     }
   }, [reviewDataList, reviewrIndex]);
+
+  // Annotation focus out when the user change pages.
+  useEffect(() => {
+    setFocusedAnnotationId(null);
+  }, [reviewrIndex, activeReviewPageIndex]);
 
   if (isLoading || !problem || isSolutionLoading || !solution) {
     return (
@@ -380,7 +391,10 @@ export default function SolutionsDetailPage() {
                     })`}
                 </div>
                 <div className="flex justify-center">
-                  <div className="relative w-[600px] h-[800px] bg-white rounded shadow-sm overflow-hidden">
+                  <div
+                    onClick={() => setFocusedAnnotationId(null)}
+                    className="relative w-[600px] h-[800px] bg-white rounded shadow-sm overflow-hidden"
+                  >
                     <Image
                       src={
                         solution.answerImgSolutions?.[
@@ -643,21 +657,50 @@ export default function SolutionsDetailPage() {
 
                           {/* Text Boxes */}
                           {reviewPages[activeReviewPageIndex].annotations.map(
-                            (annotation, index) => (
-                              <div
-                                key={index}
-                                className="absolute bg-yellow-100 bg-opacity-70
-                border border-yellow-400 rounded p-2 text-sm text-gray-800 overflow-hidden"
-                                style={{
-                                  left: `${annotation.position.x}px`,
-                                  top: `${annotation.position.y}px`,
-                                  width: `${annotation.width}px`,
-                                  height: `${annotation.height}px`,
-                                }}
-                              >
-                                {annotation.content}
-                              </div>
-                            )
+                            (annotation, index) => {
+                              const isFocoused: boolean =
+                                focusedAnnotationId === index;
+
+                              return (
+                                <div
+                                  key={index}
+                                  data-annotation-id={isFocoused}
+                                  className={`absolute ${
+                                    isFocoused
+                                      ? "bg-yellow-100 opacity-70 border rounded p-2 text-sm text-gray-800 overflow-visible border-blue-500 ring-2 ring-blue-500"
+                                      : "flex items-center justify-center rounded-full bg-yellow-200/90 shadow-sm hover:ring-2 hover:ring-blue-400"
+                                  } ${
+                                    isFocoused
+                                      ? "cursor-default"
+                                      : "cursor-pointer"
+                                  }`}
+                                  style={{
+                                    left: annotation.position.x,
+                                    top: annotation.position.y,
+                                    width: isFocoused
+                                      ? annotation.width
+                                      : COLLAPSED_SIZE,
+                                    height: isFocoused
+                                      ? annotation.height
+                                      : COLLAPSED_SIZE,
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!isFocoused) {
+                                      setFocusedAnnotationId(index);
+                                    }
+                                  }}
+                                >
+                                  {isFocoused ? (
+                                    <div className="w-full h-full whitespace-pre-wrap break-words">
+                                      {annotation.content}
+                                    </div>
+                                  ) : (
+                                    <Pencil className="h-4 w-4" />
+                                  )}
+                                </div>
+                              );
+                            }
                           )}
                         </div>
                       </div>

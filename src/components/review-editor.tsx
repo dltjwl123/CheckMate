@@ -44,8 +44,14 @@ type DrawingTool = "pen" | "eraser";
 type Color = string;
 type Point = { x: number; y: number };
 
-const DRAWING_WIDTH = 600;
-const DRAWING_HEIGHT = 800;
+// canvas constants(px)
+const CANVAS_WIDTH = 600;
+const CANVAS_HEIGHT = 800;
+const COLLAPSED_SIZE = 24;
+const DRAG_CLICK_THRESHOLD = 3;
+const SAFE_MARGIN = 12;
+const DEFAULT_ANNOTATION_WIDTH = 200;
+const DEFAULT_ANNOTATION_HEIGHT = 50;
 
 export default function ReviewEditor({
   initialSolutionImageUrls,
@@ -76,12 +82,53 @@ export default function ReviewEditor({
   const activePage = reviewPages[activePageIndex];
   const imageContainRef = useRef<HTMLDivElement>(null);
 
-  // Textbox states
+  // annotation states
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
+  const [collapsedDragId, setCollapsedDragId] = useState<string | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const hasMovedRef = useRef<boolean>(false);
+  const annotationsRef = useRef<Record<string, HTMLDivElement | null>>({});
   // const [resizeOffset, setResizeOffset] = useState<Point>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+
+  const placeCaretAtEnd = (element: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    range.collapse(false);
+
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
+  const selectAllText = (element: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+
+    const select = window.getSelection();
+    select?.removeAllRanges();
+    select?.addRange(range);
+  };
+
+  useEffect(() => {
+    if (!selectedAnnotationId) {
+      return;
+    }
+
+    const element = annotationsRef.current[selectedAnnotationId];
+    if (!element) {
+      return;
+    }
+
+    element.focus();
+    placeCaretAtEnd(element);
+
+    if (element.innerText.trim() === "새 텍스트") {
+      selectAllText(element);
+    }
+  }, [selectedAnnotationId]);
 
   useEffect(() => {
     if (initialReviewDetail) {
@@ -151,8 +198,21 @@ export default function ReviewEditor({
       }
 
       const containerRect = imageContainRef.current.getBoundingClientRect();
-      const scaleX = DRAWING_WIDTH / containerRect.width;
-      const scaleY = DRAWING_HEIGHT / containerRect.height;
+      const scaleX = CANVAS_WIDTH / containerRect.width;
+      const scaleY = CANVAS_HEIGHT / containerRect.height;
+      const movingId = collapsedDragId ?? selectedAnnotationId;
+
+      if (!movingId) {
+        return;
+      }
+
+      if (dragStartRef.current) {
+        const dx = e.clientX - dragStartRef.current.x;
+        const dy = e.clientY - dragStartRef.current.y;
+        if (Math.hypot(dx, dy) > DRAG_CLICK_THRESHOLD) {
+          hasMovedRef.current = true;
+        }
+      }
 
       setReviewPages((prevPages) =>
         prevPages.map((page, pIdx) => {
@@ -160,44 +220,65 @@ export default function ReviewEditor({
             return {
               ...page,
               annotations: page.annotations.map((annotation) => {
-                if (annotation.id === selectedAnnotationId) {
-                  if (isDragging) {
-                    let newX = (e.clientX - dragOffset.x) * scaleX;
-                    let newY = (e.clientY - dragOffset.y) * scaleY;
+                if (annotation.id !== movingId) {
+                  return annotation;
+                }
 
-                    newX = Math.max(
-                      0,
-                      Math.min(newX, DRAWING_WIDTH - annotation.width)
-                    );
-                    newY = Math.max(
-                      0,
-                      Math.min(newY, DRAWING_HEIGHT - annotation.height)
-                    );
-                    return {
-                      ...annotation,
+                if (isDragging) {
+                  let newX = (e.clientX - dragOffset.x) * scaleX;
+                  let newY = (e.clientY - dragOffset.y) * scaleY;
+                  const minX = SAFE_MARGIN;
+                  const minY = SAFE_MARGIN;
+                  const maxX = CANVAS_WIDTH - annotation.width - SAFE_MARGIN;
+                  const maxY = CANVAS_HEIGHT - annotation.height - SAFE_MARGIN;
+
+                  newX = Math.max(minX, Math.min(newX, maxX));
+                  newY = Math.max(minY, Math.min(newY, maxY));
+                  return {
+                    ...annotation,
+                    position: {
                       x: newX,
                       y: newY,
-                    };
-                  } else if (isResizing && resizeHandle) {
-                    let newWidth = annotation.width;
-                    let newHeight = annotation.height;
-                    const currentX = (e.clientX - containerRect.left) * scaleX;
-                    const currentY = (e.clientY - containerRect.top) * scaleY;
+                    },
+                  };
+                } else if (isResizing && resizeHandle) {
+                  const currentX = (e.clientX - containerRect.left) * scaleX;
+                  const currentY = (e.clientY - containerRect.top) * scaleY;
+                  const maxPossibleWidth =
+                    CANVAS_WIDTH - annotation.position.x - SAFE_MARGIN;
+                  const maxPossibleHeight =
+                    CANVAS_HEIGHT - annotation.position.y - SAFE_MARGIN;
+                  const MIN_W = 50;
+                  const MIN_H = 30;
 
-                    switch (resizeHandle) {
-                      case "br":
-                        newWidth = currentX - annotation.position.x;
-                        newHeight = currentY - annotation.position.y;
-                        break;
-                    }
-                    newWidth = Math.max(50, newWidth);
-                    newHeight = Math.max(30, newHeight);
-                    return {
-                      ...annotation,
-                      width: newWidth,
-                      height: newHeight,
-                    };
+                  let newWidth = annotation.width;
+                  let newHeight = annotation.height;
+
+                  switch (resizeHandle) {
+                    case "br":
+                      const proposedWidth: number =
+                        currentX - annotation.position.x;
+                      const proposedHeight: number =
+                        currentY - annotation.position.y;
+
+                      newWidth = Math.min(
+                        Math.max(MIN_W, proposedWidth),
+                        maxPossibleWidth
+                      );
+                      newHeight = Math.min(
+                        Math.max(MIN_H, proposedHeight),
+                        maxPossibleHeight
+                      );
+
+                      break;
                   }
+                  newWidth = Math.max(50, newWidth);
+                  newHeight = Math.max(30, newHeight);
+                  return {
+                    ...annotation,
+                    width: newWidth,
+                    height: newHeight,
+                  };
                 }
                 return annotation;
               }),
@@ -214,14 +295,24 @@ export default function ReviewEditor({
       isResizing,
       dragOffset,
       resizeHandle,
+      collapsedDragId,
     ]
   );
 
   const handleMouseUp = useCallback(() => {
+    if (collapsedDragId) {
+      if (!hasMovedRef.current) {
+        setSelectedAnnotationId(collapsedDragId);
+        setMode("select");
+      }
+      setCollapsedDragId(null);
+      dragStartRef.current = null;
+      hasMovedRef.current = false;
+    }
     setIsDragging(false);
     setIsResizing(false);
     setResizeHandle(null);
-  }, []);
+  }, [collapsedDragId]);
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
@@ -255,14 +346,18 @@ export default function ReviewEditor({
 
   const addAnnotation = (x: number, y: number) => {
     const newId: string = crypto.randomUUID();
+    const maxWidth = CANVAS_WIDTH - DEFAULT_ANNOTATION_WIDTH - SAFE_MARGIN;
+    const maxHeight = CANVAS_HEIGHT - DEFAULT_ANNOTATION_HEIGHT - SAFE_MARGIN;
+    const safeX = Math.max(SAFE_MARGIN, Math.min(x, maxWidth));
+    const safeY = Math.max(SAFE_MARGIN, Math.min(y, maxHeight));
     const newAnnotation: EditableAnnotation = {
       id: newId,
       position: {
-        x,
-        y,
+        x: safeX,
+        y: safeY,
       },
-      width: 200,
-      height: 50,
+      width: DEFAULT_ANNOTATION_WIDTH,
+      height: DEFAULT_ANNOTATION_HEIGHT,
       content: "새 텍스트",
       imageUrl: "",
       pageNumber: activePageIndex,
@@ -380,14 +475,16 @@ export default function ReviewEditor({
   const handleImageContainerClick = (e: React.MouseEvent) => {
     if (mode === "text") {
       const containerRect = imageContainRef.current!.getBoundingClientRect();
-      const scaleX = DRAWING_WIDTH / containerRect.width;
-      const scaleY = DRAWING_HEIGHT / containerRect.height;
+      const scaleX = CANVAS_WIDTH / containerRect.width;
+      const scaleY = CANVAS_HEIGHT / containerRect.height;
       const x = (e.clientX - containerRect.left) * scaleX;
       const y = (e.clientY - containerRect.top) * scaleY;
 
       addAnnotation(x, y);
     } else if (mode === "select") {
-      setSelectedAnnotationId(null);
+      if (e.target === e.currentTarget) {
+        setSelectedAnnotationId(null);
+      }
     }
   };
 
@@ -430,6 +527,55 @@ export default function ReviewEditor({
       );
     }
   };
+
+  // Annotation collapse
+  useEffect(() => {
+    const handleOutsideDown = (e: MouseEvent) => {
+      if (
+        mode !== "select" ||
+        !selectedAnnotationId ||
+        isDragging ||
+        isResizing
+      ) {
+        return;
+      }
+
+      const container = imageContainRef.current;
+      if (!container) {
+        return;
+      }
+
+      const target = e.target as HTMLElement;
+      // Click outside of the container
+      if (!container.contains(target)) {
+        setSelectedAnnotationId(null);
+        return;
+      }
+
+      // Click inside of the container but outside of the annotation
+      const focusedWrapper = container.querySelector<HTMLElement>(
+        `[data-annotation-id="${selectedAnnotationId}"]`
+      );
+      if (focusedWrapper && !focusedWrapper.contains(target)) {
+        setSelectedAnnotationId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideDown);
+    return () => document.removeEventListener("mousedown", handleOutsideDown);
+  }, [mode, selectedAnnotationId, isDragging, isResizing]);
+
+  // Prevent background dragging
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      const prev = document.body.style.userSelect;
+      document.body.style.userSelect = "none";
+
+      return () => {
+        document.body.style.userSelect = prev;
+      };
+    }
+  }, [isDragging, isResizing]);
 
   return (
     <div className="space-y-6">
@@ -580,9 +726,7 @@ export default function ReviewEditor({
                 value={mode === "text" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setMode("text")}
-                className={`flex items-center gap-1 ${
-                  mode === "text" ? "" : "bg-transparent"
-                }`}
+                className={`flex items-center gap-1`}
               >
                 <TextCursorInput className="h-4 w-4" />
                 텍스트 추가
@@ -630,7 +774,7 @@ export default function ReviewEditor({
           <div
             ref={imageContainRef}
             className="relative w-full max-w-[600px] mx-auto border border-gray-200 rounded-md overflow-hidden shadow-sm"
-            style={{ aspectRatio: `${DRAWING_WIDTH} / ${DRAWING_HEIGHT}` }}
+            style={{ aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}
             onClick={handleImageContainerClick}
           >
             <Image
@@ -645,8 +789,8 @@ export default function ReviewEditor({
             <DrawingCanvas
               initialDrawingData={activePage.reviewLayer.imgUrl}
               onDrawingChange={handleDrawingChange}
-              width={DRAWING_WIDTH}
-              height={DRAWING_HEIGHT}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
               isActive={mode === "draw"}
               drawingTool={drawingTool}
               penColor={penColor}
@@ -654,76 +798,157 @@ export default function ReviewEditor({
             />
 
             {/* Text Box */}
-            {activePage.annotations.map((annotation) => (
-              <div
-                key={annotation.id}
-                className={`absolute bg-yellow-100 opacity-70 border rounded p-2
-                  text-sm text-gray-800 resize overflow-hidden ${
-                    selectedAnnotationId === annotation.id
-                      ? "border-blue-500 ring-2 ring-blue-500"
-                      : "border-yellow-400"
-                  }`}
-                style={{
-                  left: annotation.position.x,
-                  top: annotation.position.y,
-                  width: annotation.width,
-                  height: annotation.height,
-                  cursor:
-                    mode === "select" && isDragging
-                      ? "grabbing"
-                      : mode === "select"
-                      ? "grab"
-                      : "default",
-                }}
-                onMouseDown={(e) => handleMouseDown(e, annotation.id, "drag")}
-              >
+            {activePage.annotations.map((annotation) => {
+              const isFocused = selectedAnnotationId === annotation.id;
+              return (
                 <div
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="w-full h-full outline-none"
-                  onBlur={(e) =>
-                    handleTextBoxContentChange(
-                      annotation.id,
-                      e.currentTarget.innerText
-                    )
-                  }
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  key={annotation.id}
+                  data-annotation-id={annotation.id}
+                  className={`absolute
+                      ${
+                        // Background
+                        isFocused
+                          ? "bg-yellow-100 opacity-70 border rounded p-2 text-sm text-gray-800 overflow-visible"
+                          : "flex items-center justify-center rounded-full bg-yellow-200/90 shadow-sm hover:ring-2 hover:ring-blue-400"
+                      }
+                    ${
+                      // Cursor
+                      isFocused
+                        ? mode === "select" && isDragging
+                          ? "cursor-grabbing"
+                          : mode === "select"
+                          ? "cursor-grab"
+                          : "cursor-default"
+                        : "cursor-pointer"
+                    }
+                    ${
+                      // Border
+                      isFocused
+                        ? mode === "select"
+                          ? "border-blue-500 ring-2 ring-blue-500"
+                          : "border-yellow-400"
+                        : ""
+                    }`}
+                  style={{
+                    left: annotation.position.x,
+                    top: annotation.position.y,
+                    width: isFocused ? annotation.width : COLLAPSED_SIZE,
+                    height: isFocused ? annotation.height : COLLAPSED_SIZE,
+                    cursor:
+                      mode === "select" && isDragging
+                        ? "grabbing"
+                        : mode === "select"
+                        ? "grab"
+                        : "default",
+                  }}
+                  onMouseDown={(e) => {
                     if (mode !== "select") {
+                      return;
+                    }
+                    if (isFocused) {
+                      handleMouseDown(e, annotation.id, "drag");
+                      return;
+                    }
+
+                    // Drag without selection
+                    const target = activePage.annotations.find(
+                      (a: EditableAnnotation) => a.id === annotation.id
+                    );
+                    if (!target) {
+                      return;
+                    }
+
+                    setIsDragging(true);
+                    setCollapsedDragId(annotation.id);
+                    dragStartRef.current = {
+                      x: e.clientX,
+                      y: e.clientY,
+                    };
+                    hasMovedRef.current = false;
+                    setDragOffset({
+                      x: e.clientX - target.position.x,
+                      y: e.clientY - target.position.y,
+                    });
+                  }}
+                  onClick={(e) => {
+                    if (collapsedDragId) {
+                      return;
+                    }
+                    if (!isFocused) {
+                      e.stopPropagation();
                       setSelectedAnnotationId(annotation.id);
                       setMode("select");
                     }
                   }}
+                  title={
+                    !isFocused
+                      ? annotation.content?.slice(0, 20) || "메모"
+                      : undefined
+                  }
+                  aria-label={!isFocused ? "메모 열기" : "메모 편집"}
                 >
-                  {annotation.content}
-                </div>
-                {selectedAnnotationId === annotation.id &&
-                  mode === "select" && (
+                  {isFocused ? (
                     <>
-                      {/* Resize handle */}
                       <div
-                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-300
-                      rounded-full cursor-nwse-resize z-20"
-                        onMouseDown={(e) =>
-                          handleMouseDown(e, annotation.id, "resize", "br")
+                        ref={(node: HTMLDivElement) => {
+                          annotationsRef.current[annotation.id] = node;
+                        }}
+                        contentEditable
+                        suppressContentEditableWarning
+                        className="w-full h-full outline-none"
+                        onBlur={(e) =>
+                          handleTextBoxContentChange(
+                            annotation.id,
+                            e.currentTarget.innerText
+                          )
                         }
-                      />
-
-                      {/* Delete Button */}
-                      <button
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 z-20"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteAnnotation(annotation.id);
+                          if (mode !== "select") {
+                            setSelectedAnnotationId(annotation.id);
+                            setMode("select");
+                          }
                         }}
-                        aria-label="텍스트 박스 삭제"
                       >
-                        <XCircle className="h-4 w-4" />
-                      </button>
+                        {annotation.content}
+                      </div>
+                      {selectedAnnotationId === annotation.id &&
+                        mode === "select" && (
+                          <>
+                            {/* Resize handle */}
+                            <div
+                              className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-300
+                      rounded-full cursor-nwse-resize z-20"
+                              onMouseDown={(e) =>
+                                handleMouseDown(
+                                  e,
+                                  annotation.id,
+                                  "resize",
+                                  "br"
+                                )
+                              }
+                            />
+
+                            {/* Delete Button */}
+                            <button
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 z-20"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteAnnotation(annotation.id);
+                              }}
+                              aria-label="텍스트 박스 삭제"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                     </>
+                  ) : (
+                    <Pencil className="h-4 w-4" />
                   )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
