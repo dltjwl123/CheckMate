@@ -241,15 +241,35 @@ export default function ReviewEditor({
                     },
                   };
                 } else if (isResizing && resizeHandle) {
-                  let newWidth = annotation.width;
-                  let newHeight = annotation.height;
                   const currentX = (e.clientX - containerRect.left) * scaleX;
                   const currentY = (e.clientY - containerRect.top) * scaleY;
+                  const MIN_W = 50;
+                  const MIN_H = 30;
+
+                  const maxPossibleWidth =
+                    DRAWING_WIDTH - annotation.position.x;
+                  const maxPossibleHeight =
+                    DRAWING_HEIGHT - annotation.position.y;
+
+                  let newWidth = annotation.width;
+                  let newHeight = annotation.height;
 
                   switch (resizeHandle) {
                     case "br":
-                      newWidth = currentX - annotation.position.x;
-                      newHeight = currentY - annotation.position.y;
+                      const proposedWidth: number =
+                        currentX - annotation.position.x;
+                      const proposedHeight: number =
+                        currentY - annotation.position.y;
+
+                      newWidth = Math.min(
+                        Math.max(MIN_W, proposedWidth),
+                        maxPossibleWidth
+                      );
+                      newHeight = Math.min(
+                        Math.max(MIN_H, proposedHeight),
+                        maxPossibleHeight
+                      );
+
                       break;
                   }
                   newWidth = Math.max(50, newWidth);
