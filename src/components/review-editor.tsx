@@ -504,6 +504,7 @@ export default function ReviewEditor({
     }
   };
 
+  // Annotation collapse
   useEffect(() => {
     const handleOutsideDown = (e: MouseEvent) => {
       if (
@@ -539,6 +540,18 @@ export default function ReviewEditor({
     document.addEventListener("mousedown", handleOutsideDown);
     return () => document.removeEventListener("mousedown", handleOutsideDown);
   }, [mode, selectedAnnotationId, isDragging, isResizing]);
+
+  // Prevent background dragging
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      const prev = document.body.style.userSelect;
+      document.body.style.userSelect = "none";
+
+      return () => {
+        document.body.style.userSelect = prev;
+      };
+    }
+  }, [isDragging, isResizing]);
 
   return (
     <div className="space-y-6">
