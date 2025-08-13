@@ -191,6 +191,18 @@ export default function ReviewEditor({
     }
   };
 
+  const commitFocusedAnnotation = useCallback(() => {
+    if (!selectedAnnotationId) {
+      return;
+    }
+
+    const element = annotationsRef.current[selectedAnnotationId];
+    if (!element) {
+      return;
+    }
+    handleTextBoxContentChange(selectedAnnotationId, element.innerText);
+  }, [selectedAnnotationId]);
+
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!imageContainRef.current) {
@@ -325,6 +337,7 @@ export default function ReviewEditor({
   }, [handleMouseMove, handleMouseUp]);
 
   const handleTextBoxContentChange = (id: string, content: string) => {
+    console.log("id: ", id, "content:", content);
     setReviewPages((prevPages) =>
       prevPages.map((page, pIdx) =>
         pIdx === activePageIndex
@@ -548,6 +561,7 @@ export default function ReviewEditor({
       const target = e.target as HTMLElement;
       // Click outside of the container
       if (!container.contains(target)) {
+        commitFocusedAnnotation();
         setSelectedAnnotationId(null);
         return;
       }
@@ -557,6 +571,7 @@ export default function ReviewEditor({
         `[data-annotation-id="${selectedAnnotationId}"]`
       );
       if (focusedWrapper && !focusedWrapper.contains(target)) {
+        commitFocusedAnnotation();
         setSelectedAnnotationId(null);
       }
     };
@@ -596,6 +611,7 @@ export default function ReviewEditor({
                       : "border-gray-200"
                   }`}
                 onClick={() => {
+                  commitFocusedAnnotation();
                   setActivePageIndex(index);
                   setMode("select");
                 }}
