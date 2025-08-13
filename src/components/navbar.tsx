@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Button from "./ui/button";
 import { useAuth } from "@/context/auth-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
@@ -12,6 +12,10 @@ function Navbar() {
   const { user, isLoggedIn } = useAuth();
   const [open, setOpen] = useState<boolean>(false);
   const pathName = usePathname();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathName]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
