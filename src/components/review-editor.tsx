@@ -112,6 +112,29 @@ export default function ReviewEditor({
     select?.addRange(range);
   };
 
+  const handleTextBoxContentChange = useCallback(
+    (id: string, content: string) => {
+      setReviewPages((prevPages) =>
+        prevPages.map((page, pIdx) =>
+          pIdx === activePageIndex
+            ? {
+                ...page,
+                annotations: page.annotations.map((annotation) =>
+                  annotation.id === id
+                    ? {
+                        ...annotation,
+                        content,
+                      }
+                    : annotation
+                ),
+              }
+            : page
+        )
+      );
+    },
+    [activePageIndex]
+  );
+
   useEffect(() => {
     if (!selectedAnnotationId) {
       return;
@@ -190,6 +213,18 @@ export default function ReviewEditor({
       // });
     }
   };
+
+  const commitFocusedAnnotation = useCallback(() => {
+    if (!selectedAnnotationId) {
+      return;
+    }
+
+    const element = annotationsRef.current[selectedAnnotationId];
+    if (!element) {
+      return;
+    }
+    handleTextBoxContentChange(selectedAnnotationId, element.innerText);
+  }, [selectedAnnotationId, handleTextBoxContentChange]);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -323,26 +358,6 @@ export default function ReviewEditor({
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [handleMouseMove, handleMouseUp]);
-
-  const handleTextBoxContentChange = (id: string, content: string) => {
-    setReviewPages((prevPages) =>
-      prevPages.map((page, pIdx) =>
-        pIdx === activePageIndex
-          ? {
-              ...page,
-              annotations: page.annotations.map((annotation) =>
-                annotation.id === id
-                  ? {
-                      ...annotation,
-                      content,
-                    }
-                  : annotation
-              ),
-            }
-          : page
-      )
-    );
-  };
 
   const addAnnotation = (x: number, y: number) => {
     const newId: string = crypto.randomUUID();
@@ -548,6 +563,7 @@ export default function ReviewEditor({
       const target = e.target as HTMLElement;
       // Click outside of the container
       if (!container.contains(target)) {
+        commitFocusedAnnotation();
         setSelectedAnnotationId(null);
         return;
       }
@@ -557,13 +573,20 @@ export default function ReviewEditor({
         `[data-annotation-id="${selectedAnnotationId}"]`
       );
       if (focusedWrapper && !focusedWrapper.contains(target)) {
+        commitFocusedAnnotation();
         setSelectedAnnotationId(null);
       }
     };
 
     document.addEventListener("mousedown", handleOutsideDown);
     return () => document.removeEventListener("mousedown", handleOutsideDown);
-  }, [mode, selectedAnnotationId, isDragging, isResizing]);
+  }, [
+    mode,
+    selectedAnnotationId,
+    isDragging,
+    isResizing,
+    commitFocusedAnnotation,
+  ]);
 
   // Prevent background dragging
   useEffect(() => {
@@ -596,6 +619,7 @@ export default function ReviewEditor({
                       : "border-gray-200"
                   }`}
                 onClick={() => {
+                  commitFocusedAnnotation();
                   setActivePageIndex(index);
                   setMode("select");
                 }}
