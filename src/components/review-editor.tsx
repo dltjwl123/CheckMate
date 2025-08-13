@@ -112,6 +112,29 @@ export default function ReviewEditor({
     select?.addRange(range);
   };
 
+  const handleTextBoxContentChange = useCallback(
+    (id: string, content: string) => {
+      setReviewPages((prevPages) =>
+        prevPages.map((page, pIdx) =>
+          pIdx === activePageIndex
+            ? {
+                ...page,
+                annotations: page.annotations.map((annotation) =>
+                  annotation.id === id
+                    ? {
+                        ...annotation,
+                        content,
+                      }
+                    : annotation
+                ),
+              }
+            : page
+        )
+      );
+    },
+    [activePageIndex]
+  );
+
   useEffect(() => {
     if (!selectedAnnotationId) {
       return;
@@ -201,7 +224,7 @@ export default function ReviewEditor({
       return;
     }
     handleTextBoxContentChange(selectedAnnotationId, element.innerText);
-  }, [selectedAnnotationId]);
+  }, [selectedAnnotationId, handleTextBoxContentChange]);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -335,27 +358,6 @@ export default function ReviewEditor({
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [handleMouseMove, handleMouseUp]);
-
-  const handleTextBoxContentChange = (id: string, content: string) => {
-    console.log("id: ", id, "content:", content);
-    setReviewPages((prevPages) =>
-      prevPages.map((page, pIdx) =>
-        pIdx === activePageIndex
-          ? {
-              ...page,
-              annotations: page.annotations.map((annotation) =>
-                annotation.id === id
-                  ? {
-                      ...annotation,
-                      content,
-                    }
-                  : annotation
-              ),
-            }
-          : page
-      )
-    );
-  };
 
   const addAnnotation = (x: number, y: number) => {
     const newId: string = crypto.randomUUID();
@@ -578,7 +580,13 @@ export default function ReviewEditor({
 
     document.addEventListener("mousedown", handleOutsideDown);
     return () => document.removeEventListener("mousedown", handleOutsideDown);
-  }, [mode, selectedAnnotationId, isDragging, isResizing]);
+  }, [
+    mode,
+    selectedAnnotationId,
+    isDragging,
+    isResizing,
+    commitFocusedAnnotation,
+  ]);
 
   // Prevent background dragging
   useEffect(() => {
