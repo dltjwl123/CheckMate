@@ -5,6 +5,7 @@ import {
   Annotation,
   createReviewAPI,
   getReviewDetailAPI,
+  modifyReviewAPI,
   ReviewCreateRequest,
   ReviewDetailResponse,
   ReviewLayer,
@@ -158,9 +159,14 @@ export default function ReviewCreatePage() {
         layers,
       };
 
-      await createReviewAPI(reviewData, Number(solutionId));
+      if (reviewId) {
+        await modifyReviewAPI(reviewData, Number(solutionId), Number(reviewId));
+        alert("리뷰가 수정되었습니다.");
+      } else {
+        await createReviewAPI(reviewData, Number(solutionId));
+        alert("리뷰가 제출되었습니다.");
+      }
 
-      alert("리뷰가 제출되었습니다.");
       router.push(`/problems/${problemId}/solutions/${solutionId}`);
     } catch (error) {
       console.error(error);
