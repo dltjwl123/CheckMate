@@ -33,27 +33,36 @@ export function DrawingCanvas({
     if (canvas) {
       const context = canvas.getContext("2d");
 
-      if (context) {
-        setCtx(context);
-        context.lineCap = "round";
-        if (initialDrawingData !== currentDrawingDataRef.current) {
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          if (initialDrawingData) {
-            const img = new Image();
-            img.onload = () => {
-              const originalCompositeOperation =
-                context.globalCompositeOperation;
+      if (!context) {
+        return;
+      }
+      setCtx(context);
 
-              context.globalCompositeOperation = "source-over";
-              context.drawImage(img, 0, 0, canvas.width, canvas.height);
-              context.globalCompositeOperation = originalCompositeOperation;
-              currentDrawingDataRef.current = initialDrawingData;
-            };
-            img.src = initialDrawingData;
-          } else {
-            currentDrawingDataRef.current = undefined;
-          }
+      if (!initialDrawingData) {
+        if (currentDrawingDataRef.current) {
+          currentDrawingDataRef.current = undefined;
         }
+        return;
+      }
+      let data: string = initialDrawingData;
+      if (initialDrawingData.startsWith("https://")) {
+        const url = new URL(initialDrawingData);
+        const internalURL: string =
+          window.location.origin + "/api/internal/s3/" + url.pathname;
+        data = internalURL;
+      }
+      if (data !== currentDrawingDataRef.current) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        const img = new Image();
+        img.onload = () => {
+          const originalCompositeOperation = context.globalCompositeOperation;
+
+          context.globalCompositeOperation = "source-over";
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          context.globalCompositeOperation = originalCompositeOperation;
+          currentDrawingDataRef.current = data;
+        };
+        img.src = data;
       }
     }
   }, [initialDrawingData, width, height]);
