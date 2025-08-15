@@ -19,6 +19,7 @@ import Navbar from "@/components/navbar";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/auth-context";
 import { getRelativeTime } from "@/utils/time";
 import {
   ArrowLeft,
@@ -46,6 +47,7 @@ export interface ReviewPage {
 interface ReviewData {
   id: number;
   answerId: number;
+  reviewrId: number;
   reviewerName: string;
   reviwerType: "STUDENT" | "TEACHER" | "AI";
   createdAt: Date;
@@ -56,6 +58,7 @@ const COLLAPSED_SIZE = 24;
 
 export default function SolutionsDetailPage() {
   const { id, solutionId } = useParams();
+  const { user } = useAuth();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -190,6 +193,7 @@ export default function SolutionsDetailPage() {
                   reviewerName: data.reviewerName,
                   reviwerType: data.reviewerType,
                   reviewPages: reviewPages,
+                  reviewrId: data.reviewerId,
                 }
               : prevData
           )
@@ -719,23 +723,25 @@ export default function SolutionsDetailPage() {
             </CardContent>
 
             {/* Review Edit Buttons */}
-            <div className="mb-4 mr-8 text-right space-x-2">
-              <Link
-                href={`/problems/${problemId}/solutions/${solutionId}/review?reviewId=${selectedReviewId}`}
-              >
-                <Button className="flex items-center gap-2 ml-auto">
-                  <Edit className="h-4 w-4" />
-                  리뷰 수정
+            {reviewDataList[reviewrIndex]?.reviewrId === user?.id && (
+              <div className="mb-4 mr-8 text-right space-x-2">
+                <Link
+                  href={`/problems/${problemId}/solutions/${solutionId}/review?reviewId=${selectedReviewId}`}
+                >
+                  <Button className="flex items-center gap-2 ml-auto">
+                    <Edit className="h-4 w-4" />
+                    리뷰 수정
+                  </Button>
+                </Link>
+                <Button
+                  onClick={handleDeleteReview}
+                  className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
+                >
+                  <X className="h-4 w-4" />
+                  리뷰 삭제
                 </Button>
-              </Link>
-              <Button
-                onClick={handleDeleteReview}
-                className="flex items-center gap-2 ml-auto bg-red-500 hover:bg-red-700"
-              >
-                <X className="h-4 w-4" />
-                리뷰 삭제
-              </Button>
-            </div>
+              </div>
+            )}
 
             <CardContent>
               {reviewDataList[reviewrIndex]?.id && (

@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         destination: `${S3URL}/:path*`,
       },
       {
+        source: "/api/internal/s3/:path*",
+        destination: `${S3URL}/:path*`,
+      },
+      {
         source: "/api/:path*",
         destination: `${baseURL}/:path*`,
       },

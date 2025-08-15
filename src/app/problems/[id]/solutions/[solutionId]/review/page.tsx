@@ -5,6 +5,7 @@ import {
   Annotation,
   createReviewAPI,
   getReviewDetailAPI,
+  modifyReviewAPI,
   ReviewCreateRequest,
   ReviewDetailResponse,
   ReviewLayer,
@@ -84,6 +85,9 @@ export default function ReviewCreatePage() {
       alert("로그인 후 사용할 수 있는 기능입니다.");
       return;
     }
+    if (!solution) {
+      return;
+    }
     const urlPrefix: string = `users/${user.id}/problems/${problemId}/answers/${solutionId}/reviews`;
 
     try {
@@ -109,14 +113,12 @@ export default function ReviewCreatePage() {
       const uploadedUrls: string[] = await Promise.all(
         reviewPagesData.map(async (reviewPage: ReviewPage, index: number) => {
           const url: string = reviewPage.reviewLayer.imgUrl;
+          const name: string = `${solution.userReviewSummaries.length}-${index}`;
 
           if (url.startsWith("https://")) {
             return url;
           } else {
-            const tmpFile: File = binaryToFile(
-              url,
-              `review-${user.id}-${solutionId}-${index}`
-            );
+            const tmpFile: File = binaryToFile(url, `review-${name}`);
             const uploadedUrl: string = (
               await fileUploader([tmpFile], urlPrefix)
             )[0];
@@ -129,14 +131,12 @@ export default function ReviewCreatePage() {
       const uploadedBackgorundUrls: string[] = await Promise.all(
         reviewPagesData.map(async (reviewPage: ReviewPage, index: number) => {
           const url: string = reviewPage.reviewLayer.backgroundImgUrl;
+          const name: string = `${solution.userReviewSummaries.length}-${index}`;
 
           if (url.startsWith("https://")) {
             return url;
           } else {
-            const tmpFile: File = binaryToFile(
-              url,
-              `review-bg-${user?.id}-${solutionId}-${index}`
-            );
+            const tmpFile: File = binaryToFile(url, `review-bg-${name}`);
             const uploadedUrl: string = (
               await fileUploader([tmpFile], urlPrefix)
             )[0];
@@ -158,9 +158,14 @@ export default function ReviewCreatePage() {
         layers,
       };
 
-      await createReviewAPI(reviewData, Number(solutionId));
+      if (reviewId) {
+        await modifyReviewAPI(reviewData, Number(solutionId), Number(reviewId));
+        alert("리뷰가 수정되었습니다.");
+      } else {
+        await createReviewAPI(reviewData, Number(solutionId));
+        alert("리뷰가 제출되었습니다.");
+      }
 
-      alert("리뷰가 제출되었습니다.");
       router.push(`/problems/${problemId}/solutions/${solutionId}`);
     } catch (error) {
       console.error(error);
@@ -168,6 +173,17 @@ export default function ReviewCreatePage() {
     } finally {
     }
   };
+
+  if (
+    !isLoading &&
+    !isReviewLoading &&
+    user &&
+    review &&
+    user.id !== review.reviewerId
+  ) {
+    router.replace("/");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
