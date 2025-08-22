@@ -58,7 +58,7 @@ const COLLAPSED_SIZE = 24;
 
 export default function SolutionsDetailPage() {
   const { id, solutionId } = useParams();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const problemId = Number.parseInt(id as string);
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -442,7 +442,9 @@ export default function SolutionsDetailPage() {
                 {solution?.aiReview?.content ? (
                   <Latex tex={solution.aiReview.content} />
                 ) : (
-                  <p className="text-gray-500 italic">AI 리뷰를 생성 중입니다...</p>
+                  <p className="text-gray-500 italic">
+                    AI 리뷰를 생성 중입니다...
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -752,14 +754,18 @@ export default function SolutionsDetailPage() {
         )}
 
         {/* Review Button */}
-        <div className="mt-8 text-right space-x-2">
-          <Link href={`/problems/${problemId}/solutions/${solutionId}/review`}>
-            <Button className="flex items-center gap-2 ml-auto">
-              <MessageSquare className="h-4 w-4" />
-              리뷰 작성
-            </Button>
-          </Link>
-        </div>
+        {isLoggedIn && (
+          <div className="mt-8 text-right space-x-2">
+            <Link
+              href={`/problems/${problemId}/solutions/${solutionId}/review`}
+            >
+              <Button className="flex items-center gap-2 ml-auto">
+                <MessageSquare className="h-4 w-4" />
+                리뷰 작성
+              </Button>
+            </Link>
+          </div>
+        )}
       </main>
       <Footer />
     </div>
