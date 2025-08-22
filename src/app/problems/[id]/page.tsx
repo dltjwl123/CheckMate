@@ -172,7 +172,7 @@ function Problem() {
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      정답률 {problem.accuracyRate}%
+                      정답률 {problem.accuracyRate.toFixed(2)}%
                     </span>
                     <span>.</span>
                     {problem.solved ? (

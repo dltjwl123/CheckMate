@@ -30,40 +30,45 @@ export function DrawingCanvas({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-      const context = canvas.getContext("2d");
 
-      if (!context) {
-        return;
-      }
-      setCtx(context);
+    if (!canvas) {
+      return;
+    }
+    
+    const context = canvas.getContext("2d");
 
-      if (!initialDrawingData) {
-        if (currentDrawingDataRef.current) {
-          currentDrawingDataRef.current = undefined;
-        }
-        return;
-      }
-      let data: string = initialDrawingData;
-      if (initialDrawingData.startsWith("https://")) {
-        const url = new URL(initialDrawingData);
-        const internalURL: string =
-          window.location.origin + "/api/internal/s3/" + url.pathname;
-        data = internalURL;
-      }
-      if (data !== currentDrawingDataRef.current) {
+    if (!context) {
+      return;
+    }
+
+    setCtx(context);
+
+    if (!initialDrawingData) {
+      if (currentDrawingDataRef.current) {
+        currentDrawingDataRef.current = undefined;
         context.clearRect(0, 0, canvas.width, canvas.height);
-        const img = new Image();
-        img.onload = () => {
-          const originalCompositeOperation = context.globalCompositeOperation;
-
-          context.globalCompositeOperation = "source-over";
-          context.drawImage(img, 0, 0, canvas.width, canvas.height);
-          context.globalCompositeOperation = originalCompositeOperation;
-          currentDrawingDataRef.current = data;
-        };
-        img.src = data;
       }
+      return;
+    }
+    let data: string = initialDrawingData;
+    if (initialDrawingData.startsWith("https://")) {
+      const url = new URL(initialDrawingData);
+      const internalURL: string =
+        window.location.origin + "/api/internal/s3/" + url.pathname;
+      data = internalURL;
+    }
+    if (data !== currentDrawingDataRef.current) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      const img = new Image();
+      img.onload = () => {
+        const originalCompositeOperation = context.globalCompositeOperation;
+
+        context.globalCompositeOperation = "source-over";
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        context.globalCompositeOperation = originalCompositeOperation;
+        currentDrawingDataRef.current = data;
+      };
+      img.src = data;
     }
   }, [initialDrawingData, width, height]);
 
