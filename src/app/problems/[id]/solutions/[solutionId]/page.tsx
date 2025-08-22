@@ -442,7 +442,7 @@ export default function SolutionsDetailPage() {
                 {solution?.aiReview?.content ? (
                   <Latex tex={solution.aiReview.content} />
                 ) : (
-                  <p className="text-gray-500 italic">AI 리뷰가 없습니다.</p>
+                  <p className="text-gray-500 italic">AI 리뷰를 생성 중입니다...</p>
                 )}
               </div>
             </CardContent>
