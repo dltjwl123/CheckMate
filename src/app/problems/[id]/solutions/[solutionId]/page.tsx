@@ -261,7 +261,7 @@ export default function SolutionsDetailPage() {
                         : "bg-green-100 text-green-800"
                     }`}
                   >
-                    정답률 {problem.accuracyRate}%
+                    정답률 {problem.accuracyRate.toFixed(2)}%
                   </span>
                 </div>
                 <CardTitle className="text-2xl mb-2">{problem.title}</CardTitle>

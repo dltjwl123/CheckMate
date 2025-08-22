@@ -91,7 +91,7 @@ export default function SolutionPage() {
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      정답률 {problem.accuracyRate}%
+                      정답률 {problem.accuracyRate.toFixed(2)}%
                     </span>
                   </div>
                   <CardTitle className="text-2xl mb-2">
@@ -130,7 +130,7 @@ export default function SolutionPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-2xl font-bold text-blue-900">
-                  {problem.accuracyRate}%
+                  {problem.accuracyRate.toFixed(2)}%
                 </div>
                 <div className="text-sm text-gray-600">정답률</div>
               </CardContent>
