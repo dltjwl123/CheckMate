@@ -1,9 +1,7 @@
 import axiosInstance from "@/lib/axios";
 import { apiErrorHandler } from "@/utils/errorHandler";
+import { escape } from "querystring";
 
-/*
-1. 이메일이 올바르지 않은 경우
-*/
 export const sendRegistrationCodeAPI = async (email: string) => {
   try {
     await axiosInstance.post("auth/send-code", { email });
@@ -12,10 +10,6 @@ export const sendRegistrationCodeAPI = async (email: string) => {
   }
 };
 
-/*
-1. 코드가 올바르지 않은 경우
-2. 코드가 올바른 경우
-*/
 export const verifyRegistrationCodeAPI = async (
   email: string,
   code: string
@@ -46,7 +40,6 @@ export const signUpAPI = async (
   }
 };
 
-// 1. 닉네임을 response로 받아야 할 듯
 export const loginAPI = async (email: string, password: string) => {
   try {
     await axiosInstance.post("auth/login", {
@@ -69,6 +62,50 @@ export const logoutAPI = async () => {
 export const deleteUserAPI = async () => {
   try {
     await axiosInstance.post("auth/delete-user");
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+// Password finding APIs
+export const sendPasswordFindCodeAPI = async (email: string) => {
+  try {
+    const res = await axiosInstance.post("/user/password/code", {
+      email,
+    });
+    return res.data;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const verifyPasswordFindCodeAPI = async (
+  email: string,
+  code: string
+) => {
+  try {
+    const res = await axiosInstance.post("/user/password/verify", {
+      email,
+      code,
+    });
+
+    return res.data;
+  } catch (error) {
+    apiErrorHandler(error);
+  }
+};
+
+export const changeLostPasswordAPI = async (
+  email: string,
+  newPassword: string
+) => {
+  try {
+    const res = await axiosInstance.post("/user/password/verify", {
+      email,
+      newPassword,
+    });
+
+    return res.data;
   } catch (error) {
     apiErrorHandler(error);
   }
