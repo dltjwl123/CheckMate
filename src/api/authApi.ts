@@ -100,7 +100,7 @@ export const changeLostPasswordAPI = async (
   newPassword: string
 ) => {
   try {
-    const res = await axiosInstance.post("/user/password/verify", {
+    const res = await axiosInstance.post("/user/password/update", {
       email,
       newPassword,
     });
