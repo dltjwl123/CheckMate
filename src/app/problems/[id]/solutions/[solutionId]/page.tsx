@@ -443,7 +443,7 @@ export default function SolutionsDetailPage() {
                   <Latex tex={solution.aiReview.content} />
                 ) : (
                   <p className="text-gray-500 italic">
-                    AI 리뷰를 생성 중입니다...
+                    AI 리뷰를 생성 중입니다... 2~3분 정도 소요될 수 있습니다.
                   </p>
                 )}
               </div>
