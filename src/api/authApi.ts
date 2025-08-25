@@ -1,6 +1,5 @@
 import axiosInstance from "@/lib/axios";
 import { apiErrorHandler } from "@/utils/errorHandler";
-import { escape } from "querystring";
 
 export const sendRegistrationCodeAPI = async (email: string) => {
   try {
